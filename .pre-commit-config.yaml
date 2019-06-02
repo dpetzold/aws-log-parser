@@ -1,0 +1,17 @@
+repos:
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  rev: v2.2.1
+  hooks:
+  - id: check-added-large-files
+  - id: check-json
+  - id: debug-statements
+  - id: detect-aws-credentials
+  - id: detect-private-key
+  - id: end-of-file-fixer
+  - id: flake8
+  - id: trailing-whitespace
+
+- repo: https://github.com/pre-commit/mirrors-autopep8
+  rev: v1.4.4
+  hooks:
+  - id: autopep8

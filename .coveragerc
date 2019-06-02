@@ -1,0 +1,2 @@
+[tool:pytest]
+addopts = --cov=auto_blocker --cov-report=html
