@@ -119,13 +119,12 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     client_ip: str
     http_method: str
     host: str
-    uri_stream: str
+    uri: str
     status_code: int
     referrer: str
     user_agent: str
-    uri_query: dict
-    # cookie: typing.Generator[str, cookies.SimpleCookie, None]
-    cookie: cookies.SimpleCookie
+    uri_query: str
+    cookie: str
     edge_result_type: str
     edge_request_id: str
     host_header: str

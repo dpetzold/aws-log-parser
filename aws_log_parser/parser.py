@@ -73,10 +73,8 @@ def to_python(value, field):
         return to_http_type(value)
     if field.name == 'user_agent':
         return urllib.parse.unquote(value)
-    if field.name == 'uri_query':
+    if field.name == 'uri_query' and field.type is dict:
         return urllib.parse.parse_qs(value)
-    if field.name == 'cookie':
-        return to_cookie(value)
     return field.type(value)
 
 
