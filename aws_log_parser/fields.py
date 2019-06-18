@@ -5,7 +5,7 @@ import logging
 import socket
 import urllib.parse
 
-from geolite import geolite2
+from geoip import geolite2
 from dataclasses import dataclass
 from http import cookies
 
