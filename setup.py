@@ -17,7 +17,7 @@ setup(
         'aws_log_parser',
     ],
     install_requires=[
-        'python-geoip@https://github.com/maxamante/python-geoip.git',
+        'python-geoip@git+https://github.com/maxamante/python-geoip.git',
         'python-geoip-geolite2==2015.303',
     ],
     setup_requires=[
