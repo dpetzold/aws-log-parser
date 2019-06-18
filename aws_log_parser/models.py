@@ -1,5 +1,4 @@
 import datetime
-import typing
 
 from enum import (
     Enum,
@@ -7,7 +6,6 @@ from enum import (
 )
 
 from dataclasses import dataclass
-from http import cookies
 
 from .fields import (
     CookieField,
@@ -27,8 +25,6 @@ from .fields import (
     UrlQueryField,
     UrlQuotedField,
 )
-
-
 
 
 class NoValue(Enum):
@@ -128,7 +124,7 @@ class LoadBalancerLogEntry(LogEntry):
     request_creation_time: DateTimeField
     actions_executed: ListField
     redirect_url: StringField
-    error_reason: LoadBalancerErrorReason
+    error_reason: LoadBalancerErrorReasonField
 
 
 @dataclass(frozen=True)
@@ -137,7 +133,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     time: TimeField
     edge_location: StringField
     sent_bytes: IntegerField
-    client_ip: IpAddresField
+    client_ip: IpAddressField
     http_method: StringField
     host: StringField
     uri: StringField

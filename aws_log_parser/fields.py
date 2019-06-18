@@ -1,9 +1,9 @@
-import dataclasses
 import datetime
+import geolite2
+import ipaddress
 import functools
 import logging
 import socket
-import typing
 import urllib.parse
 
 from dataclasses import dataclass
@@ -96,7 +96,7 @@ class HttpTypeField(LogField):
         for ht in HttpType:
             if self.value == ht.value:
                 return ht
-        raise UnknownHttpType(value)
+        raise UnknownHttpType(self.value)
 
 
 @dataclass
@@ -142,7 +142,7 @@ class DateField(LogField):
 
     @property
     def parsed(self):
-        return datetime.date.fromisoformat(value)
+        return datetime.date.fromisoformat(self.value)
 
 
 @dataclass
@@ -150,7 +150,7 @@ class TimeField(LogField):
 
     @property
     def parsed(self):
-        return datetime.time.fromisoformat(value)
+        return datetime.time.fromisoformat(self.value)
 
 
 @dataclass
@@ -158,8 +158,7 @@ class ListField(LogField):
 
     @property
     def parsed(self):
-        if field.type == typing.List[str]:
-            return value.split(',')
+        return self.value.split(',')
 
 
 @dataclass
@@ -168,8 +167,7 @@ class LoadBalancerErrorReasonField(LogField):
     @property
     def parsed(self):
         from .models import LoadBalancerErrorReason
-        if field.type == LoadBalancerErrorReason:
-            return getattr(LoadBalancerErrorReason, value)
+        return getattr(LoadBalancerErrorReason, self.value)
 
 
 @dataclass
@@ -178,9 +176,8 @@ class HostField(LogField):
     @property
     def parsed(self):
         from .models import Host
-        if field.type == Host:
-            ip, port = value.split(':')
-            return Host(ip, int(port))
+        ip, port = self.value.split(':')
+        return Host(ip, int(port))
 
 
 @dataclass
@@ -197,7 +194,3 @@ class UrlQueryField(LogField):
     @property
     def parsed(self):
         return urllib.parse.parse_qs(self.value)
-
-
-
-
