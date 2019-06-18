@@ -17,7 +17,7 @@ setup(
         'aws_log_parser',
     ],
     install_requires=[
-        'python-geoip-yplan@git+https://github.com/YPlan/python-geoip.git@14308f38a63070870643509a1aaa5eaafefb82fc',
+        'python-geoip-yplan@git+https://github.com/YPlan/python-geoip.git',
         'python-geoip-geolite2==2015.303',
     ],
     setup_requires=[
