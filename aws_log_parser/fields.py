@@ -15,7 +15,7 @@ from .exceptions import UnknownHttpType
 logger = logging.getLogger(__name__)
 
 
-@functools.lru_cache(max_size=8192)
+@functools.lru_cache(maxsize=8192)
 def resolve_ipaddress(ip_address):
     return socket.gethostbyaddr(ip_address)[0]
 
@@ -63,9 +63,11 @@ class IpAddressField(LogField):
     def parsed(self):
         ipaddress.ip_address(self.value)
 
+    @property
     def hostname(self):
         return resolve_ipaddress(self.value)
 
+    @property
     def country(self):
         match = geolite2.lookup(self.value)
         return match.country if match else None
