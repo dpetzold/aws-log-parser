@@ -1,6 +1,8 @@
 import dataclasses
 import datetime
+import functools
 import logging
+import socket
 import typing
 import urllib.parse
 
@@ -11,6 +13,11 @@ from .exceptions import UnknownHttpType
 
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache(max_size=8192)
+def resolve_ipaddress(ip_address):
+    return socket.gethostbyaddr(ip_address)[0]
 
 
 @dataclass
@@ -47,6 +54,21 @@ class IntegerField(LogField):
     @property
     def parsed(self):
         return int(self.value)
+
+
+@dataclass
+class IpAddressField(LogField):
+
+    @property
+    def parsed(self):
+        ipaddress.ip_address(self.value)
+
+    def hostname(self):
+        return resolve_ipaddress(self.value)
+
+    def country(self):
+        match = geolite2.lookup(self.value)
+        return match.country if match else None
 
 
 @dataclass

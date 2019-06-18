@@ -18,6 +18,7 @@ from .fields import (
     HostField,
     HttpRequestField,
     HttpTypeField,
+    IpAddressField,
     IntegerField,
     ListField,
     LoadBalancerErrorReasonField,
@@ -49,7 +50,7 @@ class HttpType(Enum):
 
 @dataclass(frozen=True)
 class Host:
-    ip: StringField
+    ip: IpAddressField
     port: IntegerField
 
 
@@ -136,15 +137,15 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     time: TimeField
     edge_location: StringField
     sent_bytes: IntegerField
-    client_ip: StringField
+    client_ip: IpAddresField
     http_method: StringField
     host: StringField
     uri: StringField
     status_code: IntegerField
     referrer: StringField
-    user_agent: StringField
-    uri_query: StringField
-    cookie: StringField
+    user_agent: UrlQuotedField
+    uri_query: UrlQueryField
+    cookie: CookieField
     edge_result_type: StringField
     edge_request_id: StringField
     host_header: StringField
