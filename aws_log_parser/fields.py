@@ -204,7 +204,7 @@ class UserAgentField(UrlQuotedField):
 
     @property
     def parsed(self):
-        return user_agents.parse(super().parsed())
+        return user_agents.parse(super().parsed)
 
     @property
     def device_type(self):
