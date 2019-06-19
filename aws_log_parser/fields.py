@@ -208,7 +208,6 @@ class UserAgentField(UrlQuotedField):
 
     @property
     def device_type(self):
-        user_agent = self.parsed()
 
         device_mappings = {
             'is_mobile': 'mobile',
@@ -218,6 +217,7 @@ class UserAgentField(UrlQuotedField):
             'is_bot': 'bot',
         }
 
+        user_agent = self.parsed
         for attr, device_type in device_mappings.items():
             if getattr(user_agent, attr):
                 return device_type
