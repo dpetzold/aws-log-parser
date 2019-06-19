@@ -3,6 +3,7 @@ import ipaddress
 import functools
 import logging
 import socket
+import user_agents
 import urllib.parse
 
 from geoip import geolite2
@@ -218,6 +219,6 @@ class UserAgentField(UrlQuotedField):
         }
 
         for attr, device_type in device_mappings.items():
-            if getatter(user_agent, attr):
+            if getattr(user_agent, attr):
                 return device_type
         return 'unknown'
