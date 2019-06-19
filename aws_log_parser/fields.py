@@ -3,6 +3,7 @@ import ipaddress
 import functools
 import logging
 import socket
+import user_agents
 import urllib.parse
 
 from geoip import geolite2
@@ -183,6 +184,14 @@ class HostField(LogField):
 
 
 @dataclass
+class UrlQueryField(LogField):
+
+    @property
+    def parsed(self):
+        return urllib.parse.parse_qs(self.value)
+
+
+@dataclass
 class UrlQuotedField(LogField):
 
     @property
@@ -191,8 +200,25 @@ class UrlQuotedField(LogField):
 
 
 @dataclass
-class UrlQueryField(LogField):
+class UserAgentField(UrlQuotedField):
 
     @property
     def parsed(self):
-        return urllib.parse.parse_qs(self.value)
+        return user_agents.parse(super().parsed())
+
+    @property
+    def device_type(self):
+        user_agent = self.parsed()
+
+        device_mappings = {
+            'is_mobile': 'mobile',
+            'is_tablet': 'tablet',
+            'is_touch_capable': 'touch',
+            'is_pc': 'pc',
+            'is_bot': 'bot',
+        }
+
+        for attr, device_type in device_mappings.items():
+            if getattr(user_agent, attr):
+                return device_type
+        return 'unknown'
