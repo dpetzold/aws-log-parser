@@ -23,7 +23,7 @@ from .fields import (
     StringField,
     TimeField,
     UrlQueryField,
-    UrlQuotedField,
+    UserAgentField,
 )
 
 
@@ -113,7 +113,7 @@ class LoadBalancerLogEntry(LogEntry):
     received_bytes: IntegerField
     sent_bytes: IntegerField
     http_request: HttpRequestField
-    user_agent: StringField
+    user_agent: UserAgentField
     ssl_cipher: StringField
     ssl_protocol: StringField
     target_group_arn: StringField
@@ -139,7 +139,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     uri: StringField
     status_code: IntegerField
     referrer: StringField
-    user_agent: UrlQuotedField
+    user_agent: UserAgentField
     uri_query: UrlQueryField
     cookie: CookieField
     edge_result_type: StringField
@@ -176,7 +176,7 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     uri_query: DictField
     referrer: StringField
     page_url: StringField
-    user_agent: StringField
+    user_agent: UserAgentField
 
 
 @dataclass(frozen=True)
