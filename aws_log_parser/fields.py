@@ -203,8 +203,12 @@ class UrlQuotedField(LogField):
 class UserAgentField(UrlQuotedField):
 
     @property
+    def value(self):
+        return super().parsed
+
+    @property
     def parsed(self):
-        return user_agents.parse(super().parsed)
+        return user_agents.parse(self.value)
 
     @property
     def device_type(self):
