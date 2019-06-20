@@ -21,6 +21,11 @@ def resolve_ipaddress(ip_address):
     return socket.gethostbyaddr(ip_address)[0]
 
 
+@functools.lru_cache(maxsize=8192)
+def parse_user_agent(user_agent):
+    return user_agents.parse(user_agent)
+
+
 @dataclass
 class LogField:
     name: str
@@ -208,7 +213,7 @@ class UserAgentField(UrlQuotedField):
 
     @property
     def parsed(self):
-        return user_agents.parse(self.value)
+        return parse_user_agent(self.value)
 
     @property
     def device_type(self):
