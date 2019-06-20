@@ -196,7 +196,7 @@ class UrlQuotedField(LogField):
 
     @property
     def parsed(self):
-        return urllib.parse.unquote(self.value).replace('%20', ' ')
+        return urllib.parse.unquote(super().value).replace('%20', ' ')
 
 
 @dataclass
