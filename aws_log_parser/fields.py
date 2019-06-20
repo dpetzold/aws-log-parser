@@ -222,7 +222,6 @@ class UserAgentField(UrlQuotedField):
         }
 
         user_agent = self.parsed
-        print(user_agent)
         for attr, device_type in device_mappings.items():
             if getattr(user_agent, attr):
                 return device_type
