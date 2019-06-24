@@ -15,13 +15,12 @@ from aws_log_parser.fields import (
     StringField,
     TimeField,
     UrlQueryField,
-    UserAgentField,
+    UserAgentField
 )
-from aws_log_parser.models import (
-    # CloudFrontRTMPDistributionLogEntry,
+from aws_log_parser.models import (  # CloudFrontRTMPDistributionLogEntry,
     CloudFrontWebDistributionLogEntry,
     LoadBalancerLogEntry,
-    LogType,
+    LogType
 )
 from aws_log_parser.parser import log_parser
 

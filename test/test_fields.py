@@ -1,20 +1,21 @@
-import pytest
 import ipaddress
 
-from aws_log_parser.models import HttpRequest
+import pytest
+
 from aws_log_parser.fields import (
-    geoip_reader,
     DateField,
-    TimeField,
     DateTimeField,
     FloatField,
+    HttpRequestField,
     IntegerField,
     IpAddressField,
-    HttpRequestField,
     StringField,
+    TimeField,
     UrlQuotedField,
     UserAgentField,
+    geoip_reader
 )
+from aws_log_parser.models import HttpRequest
 
 
 def test_url_quoted_field():
