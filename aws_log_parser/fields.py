@@ -23,8 +23,13 @@ except Exception as exc:
 
 
 @functools.lru_cache(maxsize=8192)
-def resolve_ipaddress(ip_address):
-    return socket.gethostbyaddr(ip_address)[0]
+def resolve_ip(source_ip):
+    socket.setdefaulttimeout(.500)
+    try:
+        return socket.gethostbyaddr(str(source_ip))[0]
+    except (socket.herror, socket.gaierror) as exc:
+        logger.error('Unable to resolve {} {}'.format(source_ip, str(exc)))
+        return None
 
 
 @functools.lru_cache(maxsize=8192)
