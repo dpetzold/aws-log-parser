@@ -1,6 +1,8 @@
+import pytest
 import ipaddress
 
 from aws_log_parser.fields import (
+    geoip_reader,
     IpAddressField,
     UrlQuotedField,
     UserAgentField,
@@ -24,4 +26,9 @@ def test_ip_address_field():
     field = IpAddressField('8.8.8.8')
     assert field.parsed == ipaddress.ip_address('8.8.8.8')
     assert field.hostname == 'dns.google'
+
+
+@pytest.mark.skipif(geoip_reader is None, reason="geoip database is missing")
+def test_ip_address_field_country():
+    field = IpAddressField('8.8.8.8')
     assert field.country == 'United States'
