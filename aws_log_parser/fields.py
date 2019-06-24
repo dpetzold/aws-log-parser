@@ -1,19 +1,25 @@
 import datetime
 import ipaddress
 import functools
+import geoip2.database
 import logging
 import socket
 import user_agents
 import urllib.parse
 
-from geoip import geolite2
 from dataclasses import dataclass
 from http import cookies
 
 from .exceptions import UnknownHttpType
 
-
 logger = logging.getLogger(__name__)
+
+
+try:
+    geoip_reader = geoip2.database.Reader('./GeoLite2-Country.mmdb')
+except Exception as exc:
+    logger.error(str(exc), exc_info=True)
+    geoip_reader = None
 
 
 @functools.lru_cache(maxsize=8192)
@@ -63,7 +69,7 @@ class IpAddressField(LogField):
 
     @property
     def parsed(self):
-        ipaddress.ip_address(self.value)
+        return ipaddress.ip_address(self.value)
 
     @property
     def hostname(self):
@@ -71,8 +77,8 @@ class IpAddressField(LogField):
 
     @property
     def country(self):
-        match = geolite2.lookup(self.value)
-        return match.country if match else None
+        match = geoip_reader.country(self.value)
+        return match.country.name if match and match.country else None
 
 
 @dataclass
