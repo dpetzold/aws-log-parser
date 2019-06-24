@@ -16,3 +16,9 @@ tag: build
 .PHONY: push
 push: tag
 	docker push $(DOCKER_REPO)/$(APP_NAME):$(VERSION)
+
+
+.PHONY: dist
+dist:
+	python3 setup.py sdist
+	python3 -m twine upload  dist/*

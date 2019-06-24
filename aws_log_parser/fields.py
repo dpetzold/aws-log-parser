@@ -78,7 +78,7 @@ class IpAddressField(LogField):
 
     @property
     def hostname(self):
-        return resolve_ipaddress(self.value)
+        return resolve_ip(self.value)
 
     @property
     def country(self):
