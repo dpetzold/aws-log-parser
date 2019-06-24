@@ -1,21 +1,33 @@
+import datetime
 import ipaddress
 
 import pytest
 
 from aws_log_parser.fields import (
+    CookieField,
     DateField,
     DateTimeField,
     FloatField,
+    HostField,
     HttpRequestField,
+    HttpTypeField,
     IntegerField,
     IpAddressField,
+    ListField,
+    LoadBalancerErrorReasonField,
     StringField,
     TimeField,
+    UrlQueryField,
     UrlQuotedField,
     UserAgentField,
     geoip_reader
 )
-from aws_log_parser.models import HttpRequest
+from aws_log_parser.models import (
+    Host,
+    HttpRequest,
+    HttpType,
+    LoadBalancerErrorReason
+)
 
 
 def test_url_quoted_field():
@@ -47,6 +59,36 @@ def test_integer_field():
     assert field.parsed == 200
 
 
+def test_date_field():
+    field = DateField('2019-06-05')
+    assert field.parsed == datetime.date(2019, 6, 5)
+
+
+def test_datetime_field():
+    field = DateTimeField('2019-06-05T22:13:22.123444Z')
+    assert field.parsed == datetime.datetime(2019, 6, 5, 22, 13, 22, 123444, tzinfo=datetime.timezone.utc)
+
+
+def test_time_field():
+    field = TimeField('22:13:22.123444')
+    assert field.parsed == datetime.time(22, 13, 22, 123444)
+
+
+def test_http_type_field():
+    field = HttpTypeField('h2')
+    assert field.parsed == HttpType.H2
+
+
+def test_url_query_field():
+    field = UrlQueryField('a=1&b=2')
+    assert field.parsed == {'a': ['1'], 'b': ['2']}
+
+
+def test_host_field():
+    field = HostField('192.168.131.39:2817')
+    assert field.parsed == Host(ip='192.168.131.39', port=2817)
+
+
 def test_float_field():
     field = FloatField('0.200')
     assert field.parsed == 0.200
@@ -60,6 +102,21 @@ def test_http_request_field():
         query={},
         protocol='HTTP/1.1',
     )
+
+
+def test_loadbalancer_error_reason_field():
+    field = LoadBalancerErrorReasonField(raw_value='LambdaInvalidResponse')
+    assert field.parsed == LoadBalancerErrorReason.LambdaInvalidResponse
+
+
+def test_cookie_field(cookie_zip_code):
+    field = CookieField(raw_value='zip=98101')
+    assert field.parsed == cookie_zip_code
+
+
+def test_list_field():
+    field = ListField('1,2')
+    assert field.parsed == ['1', '2']
 
 
 @pytest.mark.skipif(geoip_reader is None, reason="geoip database is missing")

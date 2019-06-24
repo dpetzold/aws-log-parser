@@ -95,14 +95,6 @@ class FloatField(LogField):
 
 
 @dataclass
-class DictField(LogField):
-
-    @property
-    def parsed(self):
-        return dict(self.value)
-
-
-@dataclass
 class HttpTypeField(LogField):
 
     @property

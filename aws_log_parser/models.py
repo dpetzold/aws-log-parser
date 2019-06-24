@@ -6,7 +6,6 @@ from .fields import (
     CookieField,
     DateField,
     DateTimeField,
-    DictField,
     FloatField,
     HostField,
     HttpRequestField,
@@ -49,7 +48,7 @@ class Host:
 class HttpRequest:
     method: StringField
     url: StringField
-    query: DictField
+    query: UrlQueryField
     protocol: StringField
 
 
@@ -168,7 +167,7 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     status_code: StringField
     client_id: StringField
     uri_stream: StringField
-    uri_query: DictField
+    uri_query: UrlQueryField
     referrer: StringField
     page_url: StringField
     user_agent: UserAgentField
