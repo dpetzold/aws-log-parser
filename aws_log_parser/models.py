@@ -21,11 +21,6 @@ from .fields import (
 )
 
 
-class NoValue(Enum):
-    def __repr__(self):
-        return '<%s.%s>'.format(self.__class__.__name__, self.name)
-
-
 class LogEntry:
     pass
 
