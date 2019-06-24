@@ -172,7 +172,7 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     sent_bytes: IntegerField
     status_code: StringField
     client_id: StringField
-    uri_stem: StringField
+    uri_stream: StringField
     uri_query: DictField
     referrer: StringField
     page_url: StringField

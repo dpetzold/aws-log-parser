@@ -3,11 +3,9 @@ import dataclasses
 
 
 def to_python(value, field):
-
     if value == '-':
         return None
-
-    return field.type(field.name, value)
+    return field.type(value)
 
 
 def log_parser(content, log_type):
