@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["/usr/arc/app/bin/aws-log-parser"]
+ENTRYPOINT ["/usr/src/app/bin/aws-log-parser"]
