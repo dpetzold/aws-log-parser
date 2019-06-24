@@ -1,11 +1,6 @@
 import datetime
-
-from enum import (
-    Enum,
-    auto,
-)
-
 from dataclasses import dataclass
+from enum import Enum, auto
 
 from .fields import (
     CookieField,
@@ -16,14 +11,14 @@ from .fields import (
     HostField,
     HttpRequestField,
     HttpTypeField,
-    IpAddressField,
     IntegerField,
+    IpAddressField,
     ListField,
     LoadBalancerErrorReasonField,
     StringField,
     TimeField,
     UrlQueryField,
-    UserAgentField,
+    UserAgentField
 )
 
 

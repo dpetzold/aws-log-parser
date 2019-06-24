@@ -1,14 +1,14 @@
 import datetime
-import ipaddress
 import functools
-import geoip2.database
+import ipaddress
 import logging
 import socket
-import user_agents
 import urllib.parse
-
 from dataclasses import dataclass
 from http import cookies
+
+import geoip2.database
+import user_agents
 
 from .exceptions import UnknownHttpType
 

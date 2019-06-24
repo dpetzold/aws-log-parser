@@ -4,6 +4,9 @@ import ipaddress
 from aws_log_parser.models import HttpRequest
 from aws_log_parser.fields import (
     geoip_reader,
+    DateField,
+    TimeField,
+    DateTimeField,
     FloatField,
     IntegerField,
     IpAddressField,
