@@ -47,7 +47,7 @@ class LogField:
 
     @property
     def parsed(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def __str__(self):
         return self.value

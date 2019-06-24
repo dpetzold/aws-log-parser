@@ -22,8 +22,8 @@ def test_url_quoted_field():
 
 def test_user_agent_field():
     # Chrome 63 on iOS 11
-    field = UserAgentField('"Mozilla/5.0%20(iPhone; CPU iPhone OS 11_0_3 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) CriOS/63.0.3239.73 Mobile/15A432 Safari/604.1"')
-    assert field.value == 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0_3 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) CriOS/63.0.3239.73 Mobile/15A432 Safari/604.1'
+    field = UserAgentField('"Mozilla/5.0%20(iPhone; CPU iPhone OS 11_0_3 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) CriOS/63.0.3239.73 Mobile/15A432 Safari/604.1"')  # NOQA: E501
+    assert field.value == 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0_3 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) CriOS/63.0.3239.73 Mobile/15A432 Safari/604.1'  # NOQA: E501
     assert field.device_type == 'mobile'
 
 
@@ -56,6 +56,7 @@ def test_http_request_field():
         query={},
         protocol='HTTP/1.1',
     )
+
 
 @pytest.mark.skipif(geoip_reader is None, reason="geoip database is missing")
 def test_ip_address_field_country():
