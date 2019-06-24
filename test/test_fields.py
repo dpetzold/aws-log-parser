@@ -1,9 +1,14 @@
 import pytest
 import ipaddress
 
+from aws_log_parser.models import HttpRequest
 from aws_log_parser.fields import (
     geoip_reader,
+    FloatField,
+    IntegerField,
     IpAddressField,
+    HttpRequestField,
+    StringField,
     UrlQuotedField,
     UserAgentField,
 )
@@ -27,6 +32,30 @@ def test_ip_address_field():
     assert field.parsed == ipaddress.ip_address('8.8.8.8')
     assert field.hostname == 'dns.google'
 
+
+def test_string_field():
+    field = StringField('Root=1-58337364-23a8c76965a2ef7629b185e3')
+    assert field.parsed == 'Root=1-58337364-23a8c76965a2ef7629b185e3'
+
+
+def test_integer_field():
+    field = IntegerField('200')
+    assert field.parsed == 200
+
+
+def test_float_field():
+    field = FloatField('0.200')
+    assert field.parsed == 0.200
+
+
+def test_http_request_field():
+    field = HttpRequestField('GET http://www.example.com:80/ HTTP/1.1')
+    assert field.parsed == HttpRequest(
+        method='GET',
+        url='http://www.example.com:80/',
+        query={},
+        protocol='HTTP/1.1',
+    )
 
 @pytest.mark.skipif(geoip_reader is None, reason="geoip database is missing")
 def test_ip_address_field_country():
