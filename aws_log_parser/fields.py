@@ -82,8 +82,11 @@ class IpAddressField(LogField):
 
     @property
     def country(self):
-        match = geoip_reader.country(self.value)
-        return match.country.name if match and match.country else None
+        try:
+            match = geoip_reader.country(self.value)
+        except geoip2.errors.AddressNotFoundError:
+            return None
+        return match.country.name
 
 
 @dataclass

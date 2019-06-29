@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='aws-log-parser',
-    version='1.5.1',
+    version='1.5.2',
     description='Python module for parsing AWS CloudFront and LoadBalancer logs',
     long_description=(pathlib.Path(__file__).parent / 'README.md').read_text(),
     long_description_content_type='text/markdown',
