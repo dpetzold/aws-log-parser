@@ -22,17 +22,17 @@ except Exception as exc:
     geoip_reader = None
 
 
-@functools.lru_cache(maxsize=8192)
+@functools.lru_cache(maxsize=16384)
 def resolve_ip(source_ip):
     socket.setdefaulttimeout(.500)
     try:
-        return socket.gethostbyaddr(str(source_ip))[0]
+        return socket.gethostbyaddr(source_ip)[0]
     except (socket.herror, socket.gaierror) as exc:
         logger.error('Unable to resolve {} {}'.format(source_ip, str(exc)))
         return None
 
 
-@functools.lru_cache(maxsize=8192)
+@functools.lru_cache(maxsize=16384)
 def parse_user_agent(user_agent):
     return user_agents.parse(user_agent)
 
