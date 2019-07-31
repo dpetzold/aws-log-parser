@@ -21,16 +21,35 @@ from .fields import (
 )
 
 
-class LogEntry:
-    pass
-
-
 class HttpType(Enum):
     Http = 'http'
     Https = 'https'
     H2 = 'h2'
     WebSocket = 'ws'
     WebSocketSecure = 'wss'
+
+
+@dataclass(frozen=True)
+class NormalizedField:
+    source_ip: str
+    status_code: str
+    url_params: dict
+
+
+class LogEntry:
+    def normalize(self):
+        if isinstance(self, LoadBalancerLogEntry):
+            return NormalizedField(
+                source_ip=self.client.ip,
+                status_code=self.elb_status_code,
+                url_params=self.http_request.query,
+            )
+
+        return NormalizedField(
+            source_ip=self.client_ip,
+            status_code=self.status_code,
+            url_params=self.uri_query,
+        )
 
 
 @dataclass(frozen=True)
