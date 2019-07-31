@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 
 try:
     geoip_reader = geoip2.database.Reader('./GeoLite2-Country.mmdb')
-except Exception as exc:
-    logger.error(str(exc), exc_info=True)
+except FileNotFoundError as exc:
+    logger.warn(str(exc))
     geoip_reader = None
 
 
