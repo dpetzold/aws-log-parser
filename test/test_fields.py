@@ -20,13 +20,13 @@ from aws_log_parser.fields import (
     UrlQueryField,
     UrlQuotedField,
     UserAgentField,
-    geoip_reader
+    geoip_reader,
 )
 from aws_log_parser.models import (
     Host,
     HttpRequest,
     HttpType,
-    LoadBalancerErrorReason
+    LoadBalancerErrorReason,
 )
 
 

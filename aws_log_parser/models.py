@@ -1,6 +1,9 @@
 import datetime
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import (
+    Enum,
+    auto,
+)
 
 from .fields import (
     CookieField,
@@ -17,7 +20,7 @@ from .fields import (
     StringField,
     TimeField,
     UrlQueryField,
-    UserAgentField
+    UserAgentField,
 )
 
 
