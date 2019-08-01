@@ -32,7 +32,7 @@ def parse_entry(contents, log_type):
 def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
     entry = parse_entry(loadbalancer_cloudfront_forward_h2, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField('h2'),
+        http_type=HttpTypeField('h2'),
         timestamp=DateTimeField('2018-11-30T22:23:00.186641Z'),
         elb=StringField('app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField('192.168.131.39:2817'),
@@ -63,7 +63,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
 def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
     entry = parse_entry(loadbalancer_cloudfront_forward, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField('http'),
+        http_type=HttpTypeField('http'),
         timestamp=DateTimeField('2018-11-30T22:23:00.186641Z'),
         elb=StringField('app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField('192.168.131.39:2817'),
@@ -94,7 +94,7 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
 def test_loadbalancer_cloudfront_forward_refused(loadbalancer_cloudfront_forward_refused):
     entry = parse_entry(loadbalancer_cloudfront_forward_refused, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='http'),
+        http_type=HttpTypeField(raw_value='http'),
         timestamp=DateTimeField(raw_value='2018-11-30T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='192.168.131.39:2817'),
@@ -222,7 +222,7 @@ def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
 def test_loadbalancer_http_entry(loadbalancer_http_entry):
     entry = parse_entry(loadbalancer_http_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='http'),
+        http_type=HttpTypeField(raw_value='http'),
         timestamp=DateTimeField(raw_value='2018-07-02T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='192.168.131.39:2817'),
@@ -253,7 +253,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry):
 def test_loadbalancer_https_entry(loadbalancer_https_entry):
     entry = parse_entry(loadbalancer_https_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='https'),
+        http_type=HttpTypeField(raw_value='https'),
         timestamp=DateTimeField(raw_value='2018-07-02T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='192.168.131.39:2817'),
@@ -284,7 +284,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry):
 def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
     entry = parse_entry(loadbalancer_http2_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='h2'),
+        http_type=HttpTypeField(raw_value='h2'),
         timestamp=DateTimeField(raw_value='2018-07-02T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='10.0.1.252:48160'),
@@ -315,7 +315,7 @@ def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
 def test_loadbalancer_websockets_entry(loadbalancer_websockets_entry):
     entry = parse_entry(loadbalancer_websockets_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='ws'),
+        http_type=HttpTypeField(raw_value='ws'),
         timestamp=DateTimeField(raw_value='2018-07-02T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='10.0.0.140:40914'),
@@ -346,7 +346,7 @@ def test_loadbalancer_websockets_entry(loadbalancer_websockets_entry):
 def test_loadbalancer_secured_websockets_entry(loadbalancer_secured_websockets_entry):
     entry = parse_entry(loadbalancer_secured_websockets_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='wss'),
+        http_type=HttpTypeField(raw_value='wss'),
         timestamp=DateTimeField(raw_value='2018-07-02T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='10.0.0.140:44244'),
@@ -377,7 +377,7 @@ def test_loadbalancer_secured_websockets_entry(loadbalancer_secured_websockets_e
 def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
     entry = parse_entry(loadbalancer_lambda_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='http'),
+        http_type=HttpTypeField(raw_value='http'),
         timestamp=DateTimeField(raw_value='2018-11-30T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='192.168.131.39:2817'),
@@ -408,7 +408,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
 def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry):
     entry = parse_entry(loadbalancer_lambda_failed_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
-        type=HttpTypeField(raw_value='http'),
+        http_type=HttpTypeField(raw_value='http'),
         timestamp=DateTimeField(raw_value='2018-11-30T22:23:00.186641Z'),
         elb=StringField(raw_value='app/my-loadbalancer/50dc6c495c0c9188'),
         client=HostField(raw_value='192.168.131.39:2817'),

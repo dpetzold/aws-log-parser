@@ -86,7 +86,7 @@ def test_url_query_field():
 
 def test_host_field():
     field = HostField('192.168.131.39:2817')
-    assert field.parsed == Host(ip='192.168.131.39', port=2817)
+    assert field.parsed == Host(ip=IpAddressField('192.168.131.39'), port=IntegerField(2817))
 
 
 def test_float_field():
