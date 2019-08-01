@@ -187,7 +187,7 @@ class HostField(LogField):
     def parsed(self):
         from .models import Host
         ip, port = self.value.split(':')
-        return Host(ip, int(port))
+        return Host(IpAddressField(ip), IntegerField(int(port)))
 
 
 @dataclass

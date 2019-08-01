@@ -34,7 +34,7 @@ classes.
         time_taken=0.001,
         forwarded_for=None,
         ssl_protocol=None,
-        ssl_chipher=None,
+        ssl_cipher=None,
         edge_response_result_type='RefreshHit',
         protocol_version='HTTP/1.1',
     )

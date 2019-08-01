@@ -37,6 +37,16 @@ class NormalizedField:
 
 
 class LogEntry:
+
+    @property
+    def ip(self):
+        return (
+            self.client.parsed.ip
+            if isinstance(self, LoadBalancerLogEntry) else
+            self.client_ip
+        )
+
+    """
     def normalize(self):
         if isinstance(self, LoadBalancerLogEntry):
             return NormalizedField(
@@ -50,6 +60,7 @@ class LogEntry:
             status_code=self.status_code,
             url_params=self.uri_query,
         )
+    """
 
 
 @dataclass(frozen=True)
@@ -108,7 +119,7 @@ class LoadBalancerErrorReason(Enum):
 
 @dataclass(frozen=True)
 class LoadBalancerLogEntry(LogEntry):
-    type: HttpTypeField
+    http_type: HttpTypeField
     timestamp: DateTimeField
     elb: StringField
     client: HostField
@@ -158,7 +169,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     time_taken: FloatField
     forwarded_for: StringField  # NOQA: E701 ??
     ssl_protocol: StringField
-    ssl_chipher: StringField
+    ssl_cipher: StringField
     edge_response_result_type: StringField
     protocol_version: StringField
     fle_encrypted_fields: StringField = ''
