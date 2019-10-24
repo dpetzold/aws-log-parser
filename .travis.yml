@@ -7,4 +7,4 @@ install:
 after_success:
   - docker run dpetzold/aws-log-parser /bin/sh coveralls
 script:
-  - python setup.py test
+  - python --version
