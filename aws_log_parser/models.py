@@ -160,7 +160,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     uri: str
     status_code: int
     referrer: str
-    user_agent: str
+    user_agent: UserAgent
     uri_query: str
     cookie: str
     edge_result_type: str

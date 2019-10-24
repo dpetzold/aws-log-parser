@@ -21,8 +21,13 @@ def parse_entry(contents, log_type):
 
 
 @pytest.fixture
-def curl_fixture():
+def curl_user_agent_fixture():
     return user_agents.parse('curl/7.46.0')
+
+
+@pytest.fixture
+def mozilla_user_agent_fixture():
+    return user_agents.parse('Mozilla/4.0%20(compatible;%20MSIE%207.0;%20Windows%20NT%205.1)')
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +37,7 @@ def patch_user_agent(monkeypatch):
     monkeypatch.setattr(UserAgent, '__eq__', __eq__)
 
 
-def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, curl_fixture):
+def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_cloudfront_forward_h2, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('h2'),
@@ -56,7 +61,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, 
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -79,7 +84,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, 
     assert entry.user_agent.is_touch_capable is False
 
 
-def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_fixture):
+def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_cloudfront_forward, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -103,7 +108,7 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_f
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -123,7 +128,7 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_f
 
 def test_loadbalancer_cloudfront_forward_refused(
     loadbalancer_cloudfront_forward_refused,
-    curl_fixture,
+    curl_user_agent_fixture,
 ):
     entry = parse_entry(loadbalancer_cloudfront_forward_refused, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
@@ -148,7 +153,7 @@ def test_loadbalancer_cloudfront_forward_refused(
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -166,7 +171,11 @@ def test_loadbalancer_cloudfront_forward_refused(
     )
 
 
-def test_cloudfront_entry(cloudfront_entry, cookie_zip_code):
+def test_cloudfront_entry(
+    cloudfront_entry,
+    cookie_zip_code,
+    mozilla_user_agent_fixture,
+):
     entry = parse_entry(cloudfront_entry, LogType.CloudFront)
     assert entry == CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
@@ -179,7 +188,7 @@ def test_cloudfront_entry(cloudfront_entry, cookie_zip_code):
         uri='/view/my/file.html',
         status_code=200,
         referrer='www.displaymyfiles.com',
-        user_agent='Mozilla/4.0%20(compatible;%20MSIE%205.0b1;%20Mac_PowerPC)',
+        user_agent=mozilla_user_agent_fixture,
         uri_query=None,
         cookie='zip=98101',
         edge_result_type='RefreshHit',
@@ -199,7 +208,11 @@ def test_cloudfront_entry(cloudfront_entry, cookie_zip_code):
     assert entry.timestamp == datetime.datetime(2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc)
 
 
-def test_cloudfront_entry_broken_cookie(cloudfront_entry_broken_cookie, cookie_empty):
+def test_cloudfront_entry_broken_cookie(
+    cloudfront_entry_broken_cookie,
+    cookie_empty,
+    mozilla_user_agent_fixture,
+):
     entry = parse_entry(cloudfront_entry_broken_cookie, LogType.CloudFront)
     assert entry == CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
@@ -212,7 +225,7 @@ def test_cloudfront_entry_broken_cookie(cloudfront_entry_broken_cookie, cookie_e
         uri='/view/my/file.html',
         status_code=200,
         referrer='www.displaymyfiles.com',
-        user_agent='Mozilla/4.0%20(compatible;%20MSIE%205.0b1;%20Mac_PowerPC)',
+        user_agent=mozilla_user_agent_fixture,
         uri_query=None,
         cookie='zip 98101',
         edge_result_type='RefreshHit',
@@ -232,7 +245,11 @@ def test_cloudfront_entry_broken_cookie(cloudfront_entry_broken_cookie, cookie_e
     assert entry.timestamp == datetime.datetime(2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc)
 
 
-def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
+def test_cloudfront_entry2(
+    cloudfront_entry2,
+    cookie_zip_code,
+    mozilla_user_agent_fixture,
+):
     entry = parse_entry(cloudfront_entry2, LogType.CloudFront)
     assert entry == CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
@@ -245,7 +262,7 @@ def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
         uri='/soundtrack/happy.mp3',
         status_code=304,
         referrer='www.unknownsingers.com',
-        user_agent='Mozilla/4.0%20(compatible;%20MSIE%207.0;%20Windows%20NT%205.1)',
+        user_agent=mozilla_user_agent_fixture,
         uri_query='a=b&c=d',
         cookie='zip=98101',
         edge_result_type='Hit',
@@ -263,7 +280,7 @@ def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
     )
 
 
-def test_loadbalancer_http_entry(loadbalancer_http_entry, curl_fixture):
+def test_loadbalancer_http_entry(loadbalancer_http_entry, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_http_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -287,7 +304,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry, curl_fixture):
             query={'a': ['b'], 'c': ['d'], 'zip': ['98101']},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -305,7 +322,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry, curl_fixture):
     )
 
 
-def test_loadbalancer_https_entry(loadbalancer_https_entry, curl_fixture):
+def test_loadbalancer_https_entry(loadbalancer_https_entry, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_https_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('https'),
@@ -329,7 +346,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry, curl_fixture):
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher='ECDHE-RSA-AES128-GCM-SHA256',
         ssl_protocol='TLSv1.2',
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -347,7 +364,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry, curl_fixture):
     )
 
 
-def test_loadbalancer_http2_entry(loadbalancer_http2_entry, curl_fixture):
+def test_loadbalancer_http2_entry(loadbalancer_http2_entry, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_http2_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('h2'),
@@ -371,7 +388,7 @@ def test_loadbalancer_http2_entry(loadbalancer_http2_entry, curl_fixture):
             query={},
             protocol='HTTP/2.0',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher='ECDHE-RSA-AES128-GCM-SHA256',
         ssl_protocol='TLSv1.2',
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -473,7 +490,7 @@ def test_loadbalancer_secured_websockets_entry(loadbalancer_secured_websockets_e
     )
 
 
-def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry, curl_fixture):
+def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_lambda_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -497,7 +514,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry, curl_fixture):
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -515,7 +532,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry, curl_fixture):
     )
 
 
-def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry, curl_fixture):
+def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry, curl_user_agent_fixture):
     entry = parse_entry(loadbalancer_lambda_failed_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -539,7 +556,7 @@ def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry, curl
             query={},
             protocol='HTTP/1.1',
         ),
-        user_agent=curl_fixture,
+        user_agent=curl_user_agent_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
