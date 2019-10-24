@@ -1,4 +1,4 @@
-from python:3.7-alpine
+FROM python:3.7-alpine
 
 WORKDIR /tmp
 RUN wget --quiet https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz \

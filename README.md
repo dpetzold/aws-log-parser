@@ -3,15 +3,14 @@
 
 # aws-log-parser
 
-Python module to parse AWS LoadBalancer and CloudFront logs into Python3 data
-classes.
+Parse AWS LoadBalancer and CloudFront logs into Python3 data classes.
 
 ## CloudFront Example
 
 ```python
     >>> from aws_log_parser import log_parser, LogType
-    >>> entries = log_parser(log_data, LogType.CloudFront)
-    >>> entries[0]
+    >>> entry = log_parser(log_data, LogType.CloudFront)[0]
+    >>> entry
     CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
         time=datetime.time(1, 13, 11),
@@ -34,18 +33,22 @@ classes.
         time_taken=0.001,
         forwarded_for=None,
         ssl_protocol=None,
-        ssl_chipher=None,
+        ssl_cipher=None,
         edge_response_result_type='RefreshHit',
         protocol_version='HTTP/1.1',
     )
+    >>> entry.country
+    'United States'
+    >>> entry.hostname
+    'rate-limited-proxy-66-249-91-41.google.com'
 ```
 
 ## LoadBalancer Example
 
 ```python
     >>> from aws_log_parser import log_parser, LogType
-    >>> entries = log_parser(log_data, LogType.LoadBalancer)
-    >>> entries[0]
+    >>> entry = log_parser(log_data, LogType.LoadBalancer)[0]
+    >>> entry
     LoadBalancerLogEntry(
         type=HttpType.H2,
         timestamp=datetime.datetime(2019, 5, 10, 0, 55, 0, 578958, tzinfo=datetime.timezone.utc),
