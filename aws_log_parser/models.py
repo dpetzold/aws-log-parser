@@ -10,7 +10,10 @@ import typing
 import geoip2.database
 from user_agents.parsers import UserAgent
 
-from .util import resolve_ip
+from .util import (
+    gethostbyaddr,
+    query_radb,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -34,7 +37,7 @@ class HttpType(Enum):
 class LogEntry:
 
     @property
-    def ip(self):
+    def ip(self) -> str:
         return (
             self.client.ip
             if isinstance(self, LoadBalancerLogEntry) else
@@ -42,16 +45,24 @@ class LogEntry:
         )
 
     @property
-    def hostname(self):
-        return resolve_ip(self.ip)
+    def hostname(self) -> str:
+        return gethostbyaddr(self.ip)
 
     @property
-    def country(self):
+    def country(self) -> str:
         try:
             match = geoip_reader.country(self.ip)
         except geoip2.errors.AddressNotFoundError:
             return None
         return match.country.name
+
+    @property
+    def network(self) -> str:
+        query = query_radb(self.ip)
+        if query:
+            return query.get('descr')
+        return None
+
 
 
 @dataclass(frozen=True)

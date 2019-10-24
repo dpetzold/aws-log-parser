@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'user-agents==2.0',
         'geoip2==2.9.0',
+        'python-whois==0.7.2',
     ],
     setup_requires=[
         'pytest-runner',
