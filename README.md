@@ -41,6 +41,8 @@ Parse AWS LoadBalancer and CloudFront logs into Python3 data classes.
     'United States'
     >>> entry.hostname
     'rate-limited-proxy-66-249-91-41.google.com'
+    >>> entry.network
+    'Google'
 ```
 
 ## LoadBalancer Example

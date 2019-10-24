@@ -75,6 +75,8 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, 
     assert entry.country == 'United States'
     assert entry.hostname == 'rate-limited-proxy-66-249-91-41.google.com'
     assert entry.network == 'Google'
+    assert entry.user_agent.device.family == 'Other'
+    assert entry.user_agent.is_touch_capable is False
 
 
 def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_fixture):
