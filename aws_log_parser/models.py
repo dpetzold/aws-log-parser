@@ -122,7 +122,7 @@ class LoadBalancerLogEntry(LogEntry):
     target_status_code: int
     received_bytes: int
     sent_bytes: int
-    http_request: str
+    http_request: HttpRequest
     user_agent: UserAgent
     ssl_cipher: str
     ssl_protocol: str

@@ -3,11 +3,13 @@ import dataclasses
 import datetime
 import typing
 import user_agents
+import urllib
 
 from user_agents.parsers import UserAgent
 
 from .models import (
     Host,
+    HttpRequest,
     LoadBalancerErrorReason,
 )
 
@@ -43,6 +45,19 @@ def to_user_agent(value):
     return user_agents.parse(value)
 
 
+def to_http_request(value):
+    # The url can contain spaces
+    split = value.split()
+    url = ' '.join(split[1:-1])
+    parsed = urllib.parse.urlparse(url)
+    return HttpRequest(
+        split[0],
+        url,
+        urllib.parse.parse_qs(parsed.query),
+        split[-1],
+    )
+
+
 TYPE_MAPPINGS = {
     datetime.date: to_date,
     datetime.time: to_time,
@@ -51,6 +66,7 @@ TYPE_MAPPINGS = {
     typing.List[str]: to_list,
     LoadBalancerErrorReason: to_loadbalancer_error_reason,
     UserAgent: to_user_agent,
+    HttpRequest: to_http_request,
 }
 
 
