@@ -41,7 +41,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, 
             tzinfo=datetime.timezone.utc,
         ),
         elb='app/my-loadbalancer/50dc6c495c0c9188',
-        client=Host(ip='192.168.131.39', port=2817),
+        client=Host(ip='66.249.91.41', port=2817),
         target=None,
         request_processing_time=0.000,
         target_processing_time=0.001,
@@ -72,6 +72,8 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, 
         redirect_url=None,
         error_reason=None,
     )
+    assert entry.country == 'United States'
+    assert entry.hostname == 'rate-limited-proxy-66-249-91-41.google.com'
 
 
 def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_fixture):

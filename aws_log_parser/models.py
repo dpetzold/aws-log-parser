@@ -48,7 +48,7 @@ class LogEntry:
     @property
     def country(self):
         try:
-            match = geoip_reader.country(self.value)
+            match = geoip_reader.country(self.ip)
         except geoip2.errors.AddressNotFoundError:
             return None
         return match.country.name
