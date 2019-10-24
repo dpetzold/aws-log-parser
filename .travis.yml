@@ -1,6 +1,10 @@
 language: python
+services:
+  - docker
 install:
   - docker build -t dpetzold/aws-log-parser .
   - docker run dpetzold/aws-log-parser /bin/sh -c "python setup.py test"
 after_success:
   - docker run dpetzold/aws-log-parser /bin/sh coveralls
+script:
+  - python setup.py test
