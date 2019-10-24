@@ -2,6 +2,9 @@ import csv
 import dataclasses
 import datetime
 import typing
+import user_agents
+
+from user_agents.parsers import UserAgent
 
 from .models import (
     Host,
@@ -36,27 +39,28 @@ def to_loadbalancer_error_reason(value):
     return getattr(LoadBalancerErrorReason, value)
 
 
+def to_user_agent(value):
+    return user_agents.parse(value)
+
+
+TYPE_MAPPINGS = {
+    datetime.date: to_date,
+    datetime.time: to_time,
+    datetime.datetime: to_datetime,
+    Host: to_host,
+    typing.List[str]: to_list,
+    LoadBalancerErrorReason: to_loadbalancer_error_reason,
+    UserAgent: to_user_agent,
+}
+
+
 def to_python(value, field):
     if value == '-':
         return None
 
-    if field.type == datetime.date:
-        return to_date(value)
-
-    if field.type == datetime.time:
-        return to_time(value)
-
-    if field.type == datetime.datetime:
-        return to_datetime(value)
-
-    if field.type == Host:
-        return to_host(value)
-
-    if field.type == typing.List[str]:
-        return to_list(value)
-
-    if field.type == LoadBalancerErrorReason:
-        return to_loadbalancer_error_reason(value)
+    parse_func = TYPE_MAPPINGS.get(field.type)
+    if parse_func:
+        return parse_func(value)
 
     try:
         return field.type(value)

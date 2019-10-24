@@ -1,10 +1,26 @@
 import datetime
+import logging
 from dataclasses import dataclass
 from enum import (
     Enum,
     auto,
 )
 import typing
+
+import geoip2.database
+from user_agents.parsers import UserAgent
+
+from .util import resolve_ip
+
+
+logger = logging.getLogger(__name__)
+
+
+try:
+    geoip_reader = geoip2.database.Reader('./GeoLite2-Country.mmdb')
+except FileNotFoundError as exc:
+    logger.warn(str(exc))
+    geoip_reader = None
 
 
 class HttpType(Enum):
@@ -25,6 +41,18 @@ class LogEntry:
             self.client_ip
         )
 
+    @property
+    def hostname(self):
+        return resolve_ip(self.ip)
+
+    @property
+    def country(self):
+        try:
+            match = geoip_reader.country(self.value)
+        except geoip2.errors.AddressNotFoundError:
+            return None
+        return match.country.name
+
 
 @dataclass(frozen=True)
 class Host:
@@ -36,7 +64,7 @@ class Host:
 class HttpRequest:
     method: str
     url: str
-    query: str
+    query: dict
     protocol: str
 
 
@@ -95,7 +123,7 @@ class LoadBalancerLogEntry(LogEntry):
     received_bytes: int
     sent_bytes: int
     http_request: str
-    user_agent: str
+    user_agent: UserAgent
     ssl_cipher: str
     ssl_protocol: str
     target_group_arn: str

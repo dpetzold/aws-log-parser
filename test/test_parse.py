@@ -1,4 +1,8 @@
 import datetime
+import user_agents
+import pytest
+
+from user_agents.parsers import UserAgent
 
 from aws_log_parser.models import (  # CloudFrontRTMPDistributionLogEntry,
     CloudFrontWebDistributionLogEntry,
@@ -15,7 +19,19 @@ def parse_entry(contents, log_type):
     return list(log_parser(contents, log_type))[0]
 
 
-def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
+@pytest.fixture
+def curl_fixture():
+    return user_agents.parse('curl/7.46.0')
+
+
+@pytest.fixture(autouse=True)
+def patch_user_agent(monkeypatch):
+    def __eq__(self, obj):
+        return self.ua_string == obj.ua_string
+    monkeypatch.setattr(UserAgent, '__eq__', __eq__)
+
+
+def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2, curl_fixture):
     entry = parse_entry(loadbalancer_cloudfront_forward_h2, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('h2'),
@@ -34,7 +50,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -52,7 +68,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
     )
 
 
-def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
+def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward, curl_fixture):
     entry = parse_entry(loadbalancer_cloudfront_forward, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -71,7 +87,7 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -89,7 +105,10 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
     )
 
 
-def test_loadbalancer_cloudfront_forward_refused(loadbalancer_cloudfront_forward_refused):
+def test_loadbalancer_cloudfront_forward_refused(
+    loadbalancer_cloudfront_forward_refused,
+    curl_fixture,
+):
     entry = parse_entry(loadbalancer_cloudfront_forward_refused, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -108,7 +127,7 @@ def test_loadbalancer_cloudfront_forward_refused(loadbalancer_cloudfront_forward
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -223,7 +242,7 @@ def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
     )
 
 
-def test_loadbalancer_http_entry(loadbalancer_http_entry):
+def test_loadbalancer_http_entry(loadbalancer_http_entry, curl_fixture):
     entry = parse_entry(loadbalancer_http_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -242,7 +261,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry):
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/?a=b&c=d&zip=98101 HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -260,7 +279,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry):
     )
 
 
-def test_loadbalancer_https_entry(loadbalancer_https_entry):
+def test_loadbalancer_https_entry(loadbalancer_https_entry, curl_fixture):
     entry = parse_entry(loadbalancer_https_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('https'),
@@ -279,7 +298,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry):
         received_bytes=0,
         sent_bytes=57,
         http_request='GET https://www.example.com:443/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher='ECDHE-RSA-AES128-GCM-SHA256',
         ssl_protocol='TLSv1.2',
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -297,7 +316,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry):
     )
 
 
-def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
+def test_loadbalancer_http2_entry(loadbalancer_http2_entry, curl_fixture):
     entry = parse_entry(loadbalancer_http2_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('h2'),
@@ -316,7 +335,7 @@ def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
         received_bytes=5,
         sent_bytes=257,
         http_request='GET https://10.0.2.105:773/ HTTP/2.0',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher='ECDHE-RSA-AES128-GCM-SHA256',
         ssl_protocol='TLSv1.2',
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -408,7 +427,7 @@ def test_loadbalancer_secured_websockets_entry(loadbalancer_secured_websockets_e
     )
 
 
-def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
+def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry, curl_fixture):
     entry = parse_entry(loadbalancer_lambda_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -427,7 +446,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
@@ -445,7 +464,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
     )
 
 
-def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry):
+def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry, curl_fixture):
     entry = parse_entry(loadbalancer_lambda_failed_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         http_type=HttpType('http'),
@@ -464,7 +483,7 @@ def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry):
         received_bytes=34,
         sent_bytes=366,
         http_request='GET http://www.example.com:80/ HTTP/1.1',
-        user_agent='curl/7.46.0',
+        user_agent=curl_fixture,
         ssl_cipher=None,
         ssl_protocol=None,
         target_group_arn='arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067',
