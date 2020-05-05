@@ -1,0 +1,5 @@
+-r base.txt
+-r dev.txt
+-r install.txt
+-r setup.txt
+-r test.txt
