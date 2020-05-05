@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/dpetzold/aws-log-parser.svg?branch=master)](https://travis-ci.org/dpetzold/aws-log-parser)
+[![Coverage Status](https://coveralls.io/repos/github/dpetzold/aws-log-parser/badge.svg?branch=master)](https://coveralls.io/github/dpetzold/aws-log-parser?branch=master)
 
 # aws-log-parser
 
@@ -33,7 +34,7 @@ classes.
         time_taken=0.001,
         forwarded_for=None,
         ssl_protocol=None,
-        ssl_chipher=None,
+        ssl_cipher=None,
         edge_response_result_type='RefreshHit',
         protocol_version='HTTP/1.1',
     )

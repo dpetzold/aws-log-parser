@@ -1,7 +1,7 @@
-import pytest
-
 from http import cookies
 from io import StringIO
+
+import pytest
 
 
 def log_entry(entry):

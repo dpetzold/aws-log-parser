@@ -1,22 +1,27 @@
 import datetime
-import typing
-
+from dataclasses import dataclass
 from enum import (
     Enum,
     auto,
 )
 
-from dataclasses import dataclass
-from http import cookies
-
-
-class NoValue(Enum):
-    def __repr__(self):
-        return '<%s.%s>'.format(self.__class__.__name__, self.name)
-
-
-class LogEntry:
-    pass
+from .fields import (
+    CookieField,
+    DateField,
+    DateTimeField,
+    FloatField,
+    HostField,
+    HttpRequestField,
+    HttpTypeField,
+    IntegerField,
+    IpAddressField,
+    ListField,
+    LoadBalancerErrorReasonField,
+    StringField,
+    TimeField,
+    UrlQueryField,
+    UserAgentField,
+)
 
 
 class HttpType(Enum):
@@ -28,17 +33,51 @@ class HttpType(Enum):
 
 
 @dataclass(frozen=True)
+class NormalizedField:
+    source_ip: str
+    status_code: str
+    url_params: dict
+
+
+class LogEntry:
+
+    @property
+    def ip(self):
+        return (
+            self.client.parsed.ip
+            if isinstance(self, LoadBalancerLogEntry) else
+            self.client_ip
+        )
+
+    """
+    def normalize(self):
+        if isinstance(self, LoadBalancerLogEntry):
+            return NormalizedField(
+                source_ip=self.client.ip,
+                status_code=self.elb_status_code,
+                url_params=self.http_request.query,
+            )
+
+        return NormalizedField(
+            source_ip=self.client_ip,
+            status_code=self.status_code,
+            url_params=self.uri_query,
+        )
+    """
+
+
+@dataclass(frozen=True)
 class Host:
-    ip: str
-    port: int
+    ip: IpAddressField
+    port: IntegerField
 
 
 @dataclass(frozen=True)
 class HttpRequest:
-    method: str
-    url: str
-    query: dict
-    protocol: str
+    method: StringField
+    url: StringField
+    query: UrlQueryField
+    protocol: StringField
 
 
 class LoadBalancerErrorReason(Enum):
@@ -83,61 +122,60 @@ class LoadBalancerErrorReason(Enum):
 
 @dataclass(frozen=True)
 class LoadBalancerLogEntry(LogEntry):
-    type: HttpType
-    timestamp: datetime.datetime
-    elb: str
-    client: Host
-    target: Host
-    request_processing_time: float
-    target_processing_time: float
-    response_processing_time: float
-    elb_status_code: int
-    target_status_code: int
-    received_bytes: int
-    sent_bytes: int
-    http_request: HttpRequest
-    user_agent: str
-    ssl_cipher: str
-    ssl_protocol: str
-    target_group_arn: str
-    trace_id: str
-    domain_name: str
-    chosen_cert_arn: str
-    matched_rule_priority: int
-    request_creation_time: datetime.datetime
-    actions_executed: typing.List[str]
-    redirect_url: str
-    error_reason: LoadBalancerErrorReason
+    http_type: HttpTypeField
+    timestamp: DateTimeField
+    elb: StringField
+    client: HostField
+    target: HostField
+    request_processing_time: FloatField
+    target_processing_time: FloatField
+    response_processing_time: FloatField
+    elb_status_code: IntegerField
+    target_status_code: IntegerField
+    received_bytes: IntegerField
+    sent_bytes: IntegerField
+    http_request: HttpRequestField
+    user_agent: UserAgentField
+    ssl_cipher: StringField
+    ssl_protocol: StringField
+    target_group_arn: StringField
+    trace_id: StringField
+    domain_name: StringField
+    chosen_cert_arn: StringField
+    matched_rule_priority: IntegerField
+    request_creation_time: DateTimeField
+    actions_executed: ListField
+    redirect_url: StringField
+    error_reason: LoadBalancerErrorReasonField
 
 
 @dataclass(frozen=True)
 class CloudFrontWebDistributionLogEntry(LogEntry):
-    date: datetime.date
-    time: datetime.time
-    edge_location: str
-    sent_bytes: int
-    client_ip: str
-    http_method: str
-    host: str
-    uri_stream: str
-    status_code: int
-    referrer: str
-    user_agent: str
-    uri_query: dict
-    # cookie: typing.Generator[str, cookies.SimpleCookie, None]
-    cookie: cookies.SimpleCookie
-    edge_result_type: str
-    edge_request_id: str
-    host_header: str
-    protocol: str
-    received_bytes: int
-    time_taken: float
-    forwarded_for: str  # NOQA: E701 ??
-    ssl_protocol: str
-    ssl_chipher: str
-    edge_response_result_type: str
-    protocol_version: str
-    fle_encrypted_fields: str = ''
+    date: DateField
+    time: TimeField
+    edge_location: StringField
+    sent_bytes: IntegerField
+    client_ip: IpAddressField
+    http_method: StringField
+    host: StringField
+    uri: StringField
+    status_code: IntegerField
+    referrer: StringField
+    user_agent: UserAgentField
+    uri_query: UrlQueryField
+    cookie: CookieField
+    edge_result_type: StringField
+    edge_request_id: StringField
+    host_header: StringField
+    protocol: StringField
+    received_bytes: IntegerField
+    time_taken: FloatField
+    forwarded_for: StringField  # NOQA: E701 ??
+    ssl_protocol: StringField
+    ssl_cipher: StringField
+    edge_response_result_type: StringField
+    protocol_version: StringField
+    fle_encrypted_fields: StringField = ''
 
     @property
     def timestamp(self):
@@ -148,24 +186,24 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
 
 @dataclass(frozen=True)
 class CloudFrontRTMPDistributionLogEntry(LogEntry):
-    date: str
-    time: str
-    edge_location: str
-    client_ip: str
-    event: str
-    sent_bytes: int
-    status_code: str
-    client_id: str
-    uri_stem: str
-    uri_query: dict
-    referrer: str
-    page_url: str
-    user_agent: str
+    date: StringField
+    time: StringField
+    edge_location: StringField
+    client_ip: StringField
+    event: StringField
+    sent_bytes: IntegerField
+    status_code: StringField
+    client_id: StringField
+    uri_stream: StringField
+    uri_query: UrlQueryField
+    referrer: StringField
+    page_url: StringField
+    user_agent: UserAgentField
 
 
 @dataclass(frozen=True)
 class LogFormat:
-    name: str
+    name: StringField
     model: LogEntry
     delimiter: chr
 

@@ -1,2 +1,2 @@
 [tool:pytest]
-addopts = --cov=auto_blocker --cov-report=html
+addopts = --cov=aws_log_parser --cov-report=html
