@@ -1,3 +1,6 @@
 bpython
 flake8
 pre-commit
+setuptools
+twine
+wheel
