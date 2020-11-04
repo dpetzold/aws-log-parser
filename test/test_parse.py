@@ -41,6 +41,7 @@ def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -84,6 +85,7 @@ def test_loadbalancer_cloudfront_forward(loadbalancer_cloudfront_forward):
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -129,6 +131,7 @@ def test_loadbalancer_cloudfront_forward_refused(loadbalancer_cloudfront_forward
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',  # noqa
         ),
@@ -270,6 +273,7 @@ def test_loadbalancer_http_entry(loadbalancer_http_entry):
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/?a=b&c=d&zip=98101',
+            path='/',
             query={
                 'a': ['b'],
                 'c': ['d'],
@@ -316,6 +320,7 @@ def test_loadbalancer_https_entry(loadbalancer_https_entry):
         http_request=HttpRequest(
             method='GET',
             url='https://www.example.com:443/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -358,6 +363,7 @@ def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
         http_request=HttpRequest(
             method='GET',
             url='https://10.0.2.105:773/',
+            path='/',
             query={},
             protocol='HTTP/2.0',
         ),
@@ -400,6 +406,7 @@ def test_loadbalancer_websockets_entry(loadbalancer_websockets_entry):
         http_request=HttpRequest(
             method='GET',
             url='http://10.0.0.30:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -442,6 +449,7 @@ def test_loadbalancer_secured_websockets_entry(loadbalancer_secured_websockets_e
         http_request=HttpRequest(
             method='GET',
             url='https://10.0.0.30:443/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -481,6 +489,7 @@ def test_loadbalancer_lambda_entry(loadbalancer_lambda_entry):
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
@@ -520,6 +529,7 @@ def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry):
         http_request=HttpRequest(
             method='GET',
             url='http://www.example.com:80/',
+            path='/',
             query={},
             protocol='HTTP/1.1',
         ),
