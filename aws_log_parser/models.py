@@ -37,6 +37,7 @@ class Host:
 class HttpRequest:
     method: str
     url: str
+    path: str
     query: dict
     protocol: str
 

@@ -39,6 +39,7 @@ def to_http_request(value):
     return HttpRequest(
         split[0],
         url,
+        parsed.path,
         urllib.parse.parse_qs(parsed.query),
         split[-1],
     )
