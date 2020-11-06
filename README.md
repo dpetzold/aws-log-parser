@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/dpetzold/aws-log-parser.svg?branch=master)](https://travis-ci.org/dpetzold/aws-log-parser)
+[![Coverage Status](https://coveralls.io/repos/github/dpetzold/aws-log-parser/badge.svg?branch=master)](https://coveralls.io/github/dpetzold/aws-log-parser?branch=master)
 
 # aws-log-parser
 
