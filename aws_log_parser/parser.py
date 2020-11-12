@@ -48,7 +48,13 @@ def to_http_request(value):
 def to_cookie(value):
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata=value)
-    return cookie
+    
+    cookiedict = {}
+
+    for key, morsel in cookie.items():
+        cookiedict[key.replace('%20', '')] = morsel.value
+
+    return cookiedict
 
 
 def to_python(value, field):
