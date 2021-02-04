@@ -556,7 +556,7 @@ def test_classic_loadbalancer_http_entry(classic_loadbalancer_http_entry):
                     port=2817),
         target=Host(ip='10.0.0.1',
                     port=80),
-        request_processing_time=8.6e-05,
+        request_processing_time=0.000086,
         target_processing_time=0.001048,
         response_processing_time=0.001337,
         elb_status_code=200,

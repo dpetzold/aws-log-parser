@@ -197,6 +197,7 @@ class LogType:
         model=ClassicLoadBalancerLogEntry,
         delimiter=' ',
     )
+
     LoadBalancer: LogFormat = LogFormat(
         name='LoadBalancer',
         model=LoadBalancerLogEntry,
