@@ -2,7 +2,6 @@ import datetime
 
 from aws_log_parser.parser import log_parser
 from aws_log_parser.models import (
-    # CloudFrontRTMPDistributionLogEntry,
     CloudFrontWebDistributionLogEntry,
     Host,
     HttpRequest,
@@ -179,7 +178,6 @@ def test_loadbalancer_cloudfront_forward_refused(
 
 def test_cloudfront_entry(cloudfront_entry, cookie_zip_code):
     entry = parse_entry(cloudfront_entry, LogType.CloudFront)
-    print(entry.cookie)
     assert entry == CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
         time=datetime.time(1, 13, 11),
