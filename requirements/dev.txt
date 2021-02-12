@@ -1,3 +1,4 @@
+black
 bpython
 flake8
 pre-commit
