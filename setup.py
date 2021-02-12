@@ -25,7 +25,6 @@ setup(
     ],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
-        "Environment :: AWS",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
