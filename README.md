@@ -1,5 +1,7 @@
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/aws-log-parser)
 [![Build Status](https://travis-ci.org/dpetzold/aws-log-parser.svg?branch=master)](https://travis-ci.org/dpetzold/aws-log-parser)
 [![Coverage Status](https://coveralls.io/repos/github/dpetzold/aws-log-parser/badge.svg?branch=master)](https://coveralls.io/github/dpetzold/aws-log-parser?branch=master)
+[![GitHub license](https://img.shields.io/github/license/dpetzold/aws-log-parser)](https://github.com/dpetzold/aws-log-parser/blob/master/LICENSE)
 
 # aws-log-parser
 
