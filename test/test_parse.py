@@ -9,7 +9,7 @@ from aws_log_parser.models import (
     HttpType,
     LoadBalancerErrorReason,
     LoadBalancerLogEntry,
-    LogType,
+    LogType, ClassicLoadBalancerLogEntry,
 )
 
 
@@ -546,3 +546,32 @@ def test_loadbalancer_lambda_failed_entry(loadbalancer_lambda_failed_entry):
         redirect_url=None,
         error_reason=LoadBalancerErrorReason.LambdaInvalidResponse,
     )
+
+def test_classic_loadbalancer_http_entry(classic_loadbalancer_http_entry):
+    entry = parse_entry(classic_loadbalancer_http_entry, LogType.ClassicLoadBalancer)
+    assert entry == ClassicLoadBalancerLogEntry(
+        timestamp=datetime.datetime(2015, 5, 13, 23, 39, 43, 945958, tzinfo=datetime.timezone.utc),
+        elb='my-loadbalancer',
+        client=Host(ip='192.168.131.39',
+                    port=2817),
+        target=Host(ip='10.0.0.1',
+                    port=80),
+        request_processing_time=0.000086,
+        target_processing_time=0.001048,
+        response_processing_time=0.001337,
+        elb_status_code=200,
+        target_status_code=200,
+        received_bytes=0,
+        sent_bytes=57,
+        http_request=HttpRequest(
+            method='GET',
+            url='https://www.example.com:443/',
+            path='/',
+            query={},
+            protocol='HTTP/1.1'
+        ),
+        user_agent='curl/7.38.0',
+        ssl_cipher='DHE-RSA-AES128-SHA',
+        ssl_protocol='TLSv1.2'
+    )
+

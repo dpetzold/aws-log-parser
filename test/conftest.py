@@ -95,3 +95,7 @@ def loadbalancer_cloudfront_forward_refused():
 @pytest.fixture
 def loadbalancer_cloudfront_forward_h2():
     return log_entry('''h2 2018-11-30T22:23:00.186641Z app/my-loadbalancer/50dc6c495c0c9188 192.168.131.39:2817 - 0.000 0.001 0.000 502 - 34 366 "GET http://www.example.com:80/ HTTP/1.1" "curl/7.46.0" - - arn:aws:elasticloadbalancing:us-east-2:123456789012:targetgroup/my-targets/73e2d6bc24d8a067 "Root=1-58337364-23a8c76965a2ef7629b185e3" "api.example.com" "-" 0 2018-11-30T22:22:48.364000Z "waf,forward" "-" "-"''')  # noqa: E501
+
+@pytest.fixture
+def classic_loadbalancer_http_entry():
+    return log_entry('''2015-05-13T23:39:43.945958Z my-loadbalancer 192.168.131.39:2817 10.0.0.1:80 0.000086 0.001048 0.001337 200 200 0 57 "GET https://www.example.com:443/ HTTP/1.1" "curl/7.38.0" DHE-RSA-AES128-SHA TLSv1.2''')

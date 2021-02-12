@@ -83,6 +83,25 @@ class LoadBalancerErrorReason(Enum):
 
 
 @dataclass(frozen=True)
+class ClassicLoadBalancerLogEntry(LogEntry):
+    timestamp: datetime.datetime
+    elb: str
+    client: Host
+    target: Host
+    request_processing_time: float
+    target_processing_time: float
+    response_processing_time: float
+    elb_status_code: int
+    target_status_code: int
+    received_bytes: int
+    sent_bytes: int
+    http_request: HttpRequest
+    user_agent: str
+    ssl_cipher: str
+    ssl_protocol: str
+
+
+@dataclass(frozen=True)
 class LoadBalancerLogEntry(LogEntry):
     type: HttpType
     timestamp: datetime.datetime
@@ -173,6 +192,12 @@ class LogFormat:
 
 @dataclass(frozen=True)
 class LogType:
+    ClassicLoadBalancer: LogFormat = LogFormat(
+        name='ClassicLoadBalancer',
+        model=ClassicLoadBalancerLogEntry,
+        delimiter=' ',
+    )
+
     LoadBalancer: LogFormat = LogFormat(
         name='LoadBalancer',
         model=LoadBalancerLogEntry,
