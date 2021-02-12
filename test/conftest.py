@@ -12,14 +12,24 @@ def log_entry(entry):
 def cookie_zip_code():
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata='zip=98101')
-    return cookie
+    cookiedict = {}
+
+    for key, morsel in cookie.items():
+        cookiedict[key.replace('%20', '')] = morsel.value
+
+    return cookiedict
 
 
 @pytest.fixture
 def cookie_empty():
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata='')
-    return cookie
+    cookiedict = {}
+
+    for key, morsel in cookie.items():
+        cookiedict[key.replace('%20', '')] = morsel.value
+
+    return cookiedict
 
 
 @pytest.fixture
