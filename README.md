@@ -6,6 +6,10 @@
 Python module to parse AWS LoadBalancer and CloudFront logs into Python3 data
 classes.
 
+## Install
+
+`pip install aws-log-parser`
+
 ## Examples
 
 ### CloudFront
