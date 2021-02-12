@@ -1,6 +1,6 @@
 repos:
 - repo: git://github.com/pre-commit/pre-commit-hooks
-  rev: v2.3.0
+  rev: v3.4.0
   hooks:
   - id: check-added-large-files
   - id: check-json
@@ -8,11 +8,15 @@ repos:
   - id: detect-aws-credentials
   - id: detect-private-key
   - id: end-of-file-fixer
-  - id: flake8
   - id: trailing-whitespace
 
+- repo: https://gitlab.com/pycqa/flake8
+  rev: 3.8.4
+  hooks:
+  - id: flake8
+
 - repo: https://github.com/ambv/black
-  rev: stable
+  rev: 20.8b1
   hooks:
   - id: black
     language_version: python3.8
