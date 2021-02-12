@@ -73,7 +73,7 @@ classes.
             query={},
             protocol='HTTP/2.0',
         ),
-        user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBDV/iPhone10,6;FBMD/iPhone;FBSN/iOS;FBSV/12.2;FBSS/3;FBCR/T-Mobile;FBID/phone;FBLC/en_US;FBOP/5]',  # noqa: E501
+        user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBDV/iPhone10,6;FBMD/iPhone;FBSN/iOS;FBSV/12.2;FBSS/3;FBCR/T-Mobile;FBID/phone;FBLC/en_US;FBOP/5]',
         ssl_cipher='ECDHE-RSA-AES128-GCM-SHA256',
         ssl_protocol='TLSv1.2',
         target_group_arn='arn:aws:elasticloadbalancing:us-east-1:12345678900:targetgroup/my-elb/4bbbb73e0d3ddadc',
