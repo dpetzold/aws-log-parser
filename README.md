@@ -6,7 +6,9 @@
 Python module to parse AWS LoadBalancer and CloudFront logs into Python3 data
 classes.
 
-## CloudFront Example
+## Examples
+
+### CloudFront
 
 ```python
     >>> from aws_log_parser import log_parser, LogType
@@ -40,7 +42,7 @@ classes.
     )
 ```
 
-## LoadBalancer Example
+### LoadBalancer
 
 ```python
     >>> from aws_log_parser import log_parser, LogType
@@ -85,3 +87,8 @@ classes.
         error_reason=None,
     )
 ```
+
+## Development
+
+Run `bootstrap.sh` to create the virtualenv. The tests can be run with `python
+setup.py test` or by running `pytest` directly.
