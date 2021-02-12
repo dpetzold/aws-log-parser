@@ -12,7 +12,7 @@ from http import cookies
 
 class NoValue(Enum):
     def __repr__(self):
-        return '<%s.%s>'.format(self.__class__.__name__, self.name)
+        return f"<{self.__class__.__name__}.{self.name}>"
 
 
 class LogEntry:
@@ -20,11 +20,11 @@ class LogEntry:
 
 
 class HttpType(Enum):
-    Http = 'http'
-    Https = 'https'
-    H2 = 'h2'
-    WebSocket = 'ws'
-    WebSocketSecure = 'wss'
+    Http = "http"
+    Https = "https"
+    H2 = "h2"
+    WebSocket = "ws"
+    WebSocketSecure = "wss"
 
 
 @dataclass(frozen=True)
@@ -157,12 +157,12 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     ssl_chipher: str
     edge_response_result_type: str
     protocol_version: str
-    fle_encrypted_fields: str = ''
+    fle_encrypted_fields: str = ""
 
     @property
     def timestamp(self):
         return datetime.datetime.fromisoformat(
-            f'{self.date}T{self.time}',
+            f"{self.date}T{self.time}",
         ).replace(tzinfo=datetime.timezone.utc)
 
 
@@ -193,25 +193,25 @@ class LogFormat:
 @dataclass(frozen=True)
 class LogType:
     ClassicLoadBalancer: LogFormat = LogFormat(
-        name='ClassicLoadBalancer',
+        name="ClassicLoadBalancer",
         model=ClassicLoadBalancerLogEntry,
-        delimiter=' ',
+        delimiter=" ",
     )
 
     LoadBalancer: LogFormat = LogFormat(
-        name='LoadBalancer',
+        name="LoadBalancer",
         model=LoadBalancerLogEntry,
-        delimiter=' ',
+        delimiter=" ",
     )
 
     CloudFront: LogFormat = LogFormat(
-        name='CloudFront',
+        name="CloudFront",
         model=CloudFrontWebDistributionLogEntry,
-        delimiter='\t',
+        delimiter="\t",
     )
 
     CloudFrontRTMP: LogFormat = LogFormat(
-        name='CloudFrontRTMP',
+        name="CloudFrontRTMP",
         model=CloudFrontRTMPDistributionLogEntry,
-        delimiter='\t',
+        delimiter="\t",
     )
