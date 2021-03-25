@@ -1,6 +1,6 @@
 import datetime
 
-from aws_log_parser.parser import log_parser
+from aws_log_parser.parser import AwsLogParser
 from aws_log_parser.models import (
     CloudFrontWebDistributionLogEntry,
     Host,
@@ -14,7 +14,7 @@ from aws_log_parser.models import (
 
 
 def parse_entry(contents, log_type):
-    return list(log_parser(contents, log_type))[0]
+    return list(AwsLogParser(log_type).parse(contents))[0]
 
 
 def test_loadbalancer_cloudfront_forward_h2(loadbalancer_cloudfront_forward_h2):
