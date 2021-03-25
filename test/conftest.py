@@ -35,7 +35,7 @@ def cookie_empty():
 
 
 @pytest.fixture
-def base_cloudfront_log_entry():
+def base_cloudfront_log_entry(cookie_zip_code):
     return CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
         time=datetime.time(1, 13, 11),
@@ -49,7 +49,7 @@ def base_cloudfront_log_entry():
         referrer="www.displaymyfiles.com",
         user_agent="Mozilla/4.0 (compatible; MSIE 5.0b1; Mac_PowerPC)",
         uri_query=None,
-        cookie=cookie_with_space,
+        cookie=cookie_zip_code,
         edge_result_type="RefreshHit",
         edge_request_id="MRVMF7KydIvxMWfJIglgwHQwZsbG2IhRJ07sn9AkKUFSHS9EXAMPLE==",
         host_header="d111111abcdef8.cloudfront.net",
