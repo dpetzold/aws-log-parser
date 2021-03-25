@@ -1,10 +1,22 @@
+import datetime
 import pytest
 
 from io import StringIO
 
+from aws_log_parser import AwsLogParser
+from aws_log_parser.models import (
+    CloudFrontWebDistributionLogEntry,
+    # LoadBalancerLogEntry,
+    # ClassicLoadBalancerLogEntry,
+)
+
 
 def log_entry(entry):
     return StringIO(entry)
+
+
+def parse_entry(contents, log_type):
+    return list(AwsLogParser(log_type).parse(contents))[0]
 
 
 @pytest.fixture
@@ -20,6 +32,36 @@ def cookie_with_space():
 @pytest.fixture
 def cookie_empty():
     return {}
+
+
+@pytest.fixture
+def base_cloudfront_log_entry():
+    return CloudFrontWebDistributionLogEntry(
+        date=datetime.date(2014, 5, 23),
+        time=datetime.time(1, 13, 11),
+        edge_location="FRA2",
+        sent_bytes=182,
+        client_ip="192.0.2.10",
+        http_method="GET",
+        host="d111111abcdef8.cloudfront.net",
+        uri_stream="/view/my/file.html",
+        status_code=200,
+        referrer="www.displaymyfiles.com",
+        user_agent="Mozilla/4.0 (compatible; MSIE 5.0b1; Mac_PowerPC)",
+        uri_query=None,
+        cookie=cookie_with_space,
+        edge_result_type="RefreshHit",
+        edge_request_id="MRVMF7KydIvxMWfJIglgwHQwZsbG2IhRJ07sn9AkKUFSHS9EXAMPLE==",
+        host_header="d111111abcdef8.cloudfront.net",
+        protocol="http",
+        received_bytes=None,
+        time_taken=0.001,
+        forwarded_for=None,
+        ssl_protocol=None,
+        ssl_chipher=None,
+        edge_response_result_type="RefreshHit",
+        protocol_version="HTTP/1.1",
+    )
 
 
 @pytest.fixture
