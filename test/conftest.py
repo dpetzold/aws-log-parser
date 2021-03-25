@@ -49,7 +49,7 @@ def base_cloudfront_log_entry(cookie_zip_code):
         referrer="www.displaymyfiles.com",
         user_agent="Mozilla/4.0 (compatible; MSIE 5.0b1; Mac_PowerPC)",
         uri_query=None,
-        cookie=cookie_zip_code,
+        cookie=None,
         edge_result_type="RefreshHit",
         edge_request_id="MRVMF7KydIvxMWfJIglgwHQwZsbG2IhRJ07sn9AkKUFSHS9EXAMPLE==",
         host_header="d111111abcdef8.cloudfront.net",

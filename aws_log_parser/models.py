@@ -82,7 +82,7 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
-@dataclass(frozen=True)
+@dataclass
 class ClassicLoadBalancerLogEntry(LogEntry):
     timestamp: datetime.datetime
     elb: str
@@ -101,7 +101,7 @@ class ClassicLoadBalancerLogEntry(LogEntry):
     ssl_protocol: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class LoadBalancerLogEntry(LogEntry):
     type: HttpType
     timestamp: datetime.datetime
@@ -130,7 +130,7 @@ class LoadBalancerLogEntry(LogEntry):
     error_reason: LoadBalancerErrorReason
 
 
-@dataclass(frozen=True)
+@dataclass
 class CloudFrontWebDistributionLogEntry(LogEntry):
     date: datetime.date
     time: datetime.time
@@ -166,7 +166,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
         ).replace(tzinfo=datetime.timezone.utc)
 
 
-@dataclass(frozen=True)
+@dataclass
 class CloudFrontRTMPDistributionLogEntry(LogEntry):
     date: str
     time: str
@@ -183,14 +183,14 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     user_agent: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class LogFormat:
     name: str
     model: LogEntry
     delimiter: chr
 
 
-@dataclass(frozen=True)
+@dataclass
 class LogType:
     ClassicLoadBalancer: LogFormat = LogFormat(
         name="ClassicLoadBalancer",
