@@ -9,10 +9,11 @@ from http import cookies
 
 from .exceptions import UnknownHttpType
 from .models import (
-    LoadBalancerErrorReason,
     HttpType,
     Host,
     HttpRequest,
+    LoadBalancerErrorReason,
+    LogType,
 )
 
 logger = logging.getLogger(__name__)
@@ -87,10 +88,15 @@ def to_python(value, field):
     return field.type(value)
 
 
-def log_parser(content, log_type):
-    fields = dataclasses.fields(log_type.model)
-    for row in csv.reader(content, delimiter=log_type.delimiter):
-        if not row[0].startswith("#"):
-            yield log_type.model(
-                *[to_python(value, field) for value, field in zip(row, fields)]
-            )
+@dataclasses.dataclass
+class AwsLogParser:
+
+    log_type: LogType
+
+    def parse(self, content: typing.List[str]):
+        fields = dataclasses.fields(self.log_type.model)
+        for row in csv.reader(content, delimiter=self.log_type.delimiter):
+            if not row[0].startswith("#"):
+                yield self.log_type.model(
+                    *[to_python(value, field) for value, field in zip(row, fields)]
+                )
