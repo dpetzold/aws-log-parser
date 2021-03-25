@@ -1,6 +1,5 @@
 import pytest
 
-from http import cookies
 from io import StringIO
 
 
@@ -10,23 +9,17 @@ def log_entry(entry):
 
 @pytest.fixture
 def cookie_zip_code():
-    cookie = cookies.SimpleCookie()
-    cookie.load(rawdata="zip=98101")
-    return cookie
+    return {"zip": "98101"}
 
 
 @pytest.fixture
 def cookie_with_space():
-    cookie = cookies.SimpleCookie()
-    cookie.load(rawdata="this zip=98101")
-    return cookie
+    return {"this zip": "98101"}
 
 
 @pytest.fixture
 def cookie_empty():
-    cookie = cookies.SimpleCookie()
-    cookie.load(rawdata="")
-    return cookie
+    return {}
 
 
 @pytest.fixture
