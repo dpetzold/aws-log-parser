@@ -244,6 +244,42 @@ def test_cloudfront_entry_broken_cookie(cloudfront_entry_broken_cookie, cookie_e
     )
 
 
+def test_cloudfront_entry_cookie_with_encoding(
+    cloudfront_entry_cookie_with_encoding, cookie_with_space
+):
+    entry = parse_entry(cloudfront_entry_cookie_with_encoding, LogType.CloudFront)
+    assert entry == CloudFrontWebDistributionLogEntry(
+        date=datetime.date(2014, 5, 23),
+        time=datetime.time(1, 13, 11),
+        edge_location="FRA2",
+        sent_bytes=182,
+        client_ip="192.0.2.10",
+        http_method="GET",
+        host="d111111abcdef8.cloudfront.net",
+        uri_stream="/view/my/file.html",
+        status_code=200,
+        referrer="www.displaymyfiles.com",
+        user_agent="Mozilla/4.0 (compatible; MSIE 5.0b1; Mac_PowerPC)",
+        uri_query=None,
+        cookie=cookie_with_space,
+        edge_result_type="RefreshHit",
+        edge_request_id="MRVMF7KydIvxMWfJIglgwHQwZsbG2IhRJ07sn9AkKUFSHS9EXAMPLE==",
+        host_header="d111111abcdef8.cloudfront.net",
+        protocol="http",
+        received_bytes=None,
+        time_taken=0.001,
+        forwarded_for=None,
+        ssl_protocol=None,
+        ssl_chipher=None,
+        edge_response_result_type="RefreshHit",
+        protocol_version="HTTP/1.1",
+    )
+    assert isinstance(entry.timestamp, datetime.datetime) is True
+    assert entry.timestamp == datetime.datetime(
+        2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
+    )
+
+
 def test_cloudfront_entry2(cloudfront_entry2, cookie_zip_code):
     entry = parse_entry(cloudfront_entry2, LogType.CloudFront)
     assert entry == CloudFrontWebDistributionLogEntry(

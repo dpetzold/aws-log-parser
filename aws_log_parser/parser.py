@@ -46,10 +46,14 @@ def to_http_request(value):
     )
 
 
+def cookie_to_dict(cookie):
+    return {urllib.parse.unquote(key): morsel.value for key, morsel in cookie.items()}
+
+
 def to_cookie(value):
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata=value)
-    return {urllib.parse.unquote(key): morsel.value for key, morsel in cookie.items()}
+    return cookie_to_dict(cookie)
 
 
 def to_python(value, field):
