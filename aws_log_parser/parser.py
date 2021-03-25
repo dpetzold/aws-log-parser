@@ -49,13 +49,7 @@ def to_http_request(value):
 def to_cookie(value):
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata=value)
-
-    cookiedict = {}
-
-    for key, morsel in cookie.items():
-        cookiedict[key.replace("%20", "")] = morsel.value
-
-    return cookiedict
+    return {urllib.parse.unquote(key): morsel.value for key, morsel in cookie.items()}
 
 
 def to_python(value, field):
