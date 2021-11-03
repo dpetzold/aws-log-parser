@@ -12,7 +12,7 @@ def get_requirements(name):
 
 setup(
     name="aws-log-parser",
-    version="1.9.0",
+    version="2.0.0",
     description="Parse AWS CloudFront and LoadBalancer logs into Python dataclasses",
     long_description=(pathlib.Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
@@ -40,7 +40,12 @@ setup(
     setup_requires=get_requirements("setup"),
     tests_require=get_requirements("test"),
     extras_require={
-        "dev": get_requirements("dev") + get_requirements("test"),
+        "dev": (
+            get_requirements("dev")
+            + get_requirements("test")
+            + get_requirements("cli"),
+        ),
+        "cli": get_requirements("cli"),
     },
     entry_points={
         "console_scripts": [

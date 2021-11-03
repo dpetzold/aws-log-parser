@@ -1,4 +1,5 @@
 -r base.txt
+-r cli.txt
 -r dev.txt
 -r install.txt
 -r setup.txt

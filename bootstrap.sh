@@ -18,7 +18,7 @@ if [ ! -e "${PYENV_ROOT}/versions/${VIRTUALENV_NAME}" ]; then
     pyenv virtualenv ${PYTHON_VERSION} ${VIRTUALENV_NAME}
 fi
 pyenv activate ${VIRTUALENV_NAME}
-pip install --isolated --upgrade pip
-pip install --isolated -e .
-pip install --isolated -r requirements/all.txt
+pip install --upgrade pip
+pip install -e .
+pip install -r requirements/all.txt
 pre-commit install
