@@ -15,6 +15,7 @@ class NoValue(Enum):
         return f"<{self.__class__.__name__}.{self.name}>"
 
 
+@dataclass
 class LogEntry:
     pass
 
@@ -186,8 +187,8 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
 @dataclass
 class LogFormat:
     name: str
-    model: LogEntry
-    delimiter: chr
+    model: typing.Type[LogEntry]
+    delimiter: str
 
 
 @dataclass
