@@ -2,7 +2,7 @@
 
 set -ex
 
-PYTHON_VERSION=3.8.6
+PYTHON_VERSION=3.9.6
 VIRTUALENV_NAME=aws-log-parser-${PYTHON_VERSION}
 
 cd $PYENV_ROOT
@@ -18,7 +18,7 @@ if [ ! -e "${PYENV_ROOT}/versions/${VIRTUALENV_NAME}" ]; then
     pyenv virtualenv ${PYTHON_VERSION} ${VIRTUALENV_NAME}
 fi
 pyenv activate ${VIRTUALENV_NAME}
-pip install --upgrade pip
-pip install -e .
-pip install -r requirements/all.txt
+pip install --isolated --upgrade pip
+pip install --isolated -e .
+pip install --isolated -r requirements/all.txt
 pre-commit install

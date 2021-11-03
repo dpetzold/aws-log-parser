@@ -1,4 +1,4 @@
 pytest
 pytest-cov
-python-coveralls
+coveralls
 pytest-datadir

@@ -42,4 +42,9 @@ setup(
     extras_require={
         "dev": get_requirements("dev") + get_requirements("test"),
     },
+    entry_points={
+        "console_scripts": [
+            "aws-log-parser=aws_log_parser.cli:main",
+        ]
+    },
 )
