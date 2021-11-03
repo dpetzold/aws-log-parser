@@ -13,7 +13,7 @@ from .models import (
     Host,
     HttpRequest,
     LoadBalancerErrorReason,
-    LogType,
+    LogFormat,
 )
 
 logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ def to_python(value, field):
 @dataclasses.dataclass
 class AwsLogParser:
 
-    log_type: LogType
+    log_type: LogFormat
 
     def parse(self, content: typing.List[str]):
         fields = dataclasses.fields(self.log_type.model)
