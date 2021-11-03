@@ -19,11 +19,9 @@ s3_client = boto3.client("s3")
 
 def parse_file(path):
     with open(path) as log_data:
-        entries = AwsLogParser(log_type=LogType.ClassicLoadBalancer).parse(
-            log_data.readlines()
-        )
-        for entry in entries:
-            yield entry
+        yield from AwsLogParser(
+            log_type=LogType.ClassicLoadBalancer,
+        ).parse(log_data.readlines())
 
 
 def get_tag(tags, name):
