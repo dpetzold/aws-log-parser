@@ -5,7 +5,11 @@ from .aws import AwsService
 
 
 @dataclass
-class Ec2Client(AwsService):
+class Ec2Service(AwsService):
+    def __hash__(self):
+        return hash(self.__module__)
+
+    @property
     def client(self):
         return self.aws_client.aws_client("ec2")
 
@@ -40,7 +44,7 @@ class Ec2Client(AwsService):
         instances = self.get_instances(*ip_addresses)
 
         for instance in instances:
-            name = self.aws_client.get_tag(instance["Tags"], "Name")
+            name = self.get_tag(instance["Tags"], "Name")
             for interface in instance["NetworkInterfaces"]:
                 names[interface["PrivateIpAddress"]] = name
 

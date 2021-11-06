@@ -58,29 +58,40 @@ class AwsLogParserCli:
         parsed = urlparse(args.url)
 
         if parsed.scheme == "file":
-            entries = self.read_files(parsed.path)
+            raw_entries = self.read_files(parsed.path)
 
         elif parsed.scheme == "s3":
-            entries = self.s3_service.read_keys(
+            raw_entries = self.s3_service.read_keys(
                 parsed.netloc, parsed.path.lstrip("/"), endswith=".log"
             )
 
         else:
             raise ValueError(f"Unknown scheme {parsed.scheme}")
 
+        entries = AwsLogParser(log_type=args.log_type).parse(raw_entries)
+
         self.count_hosts(entries)
 
 
 def main():
+
     parser = argparse.ArgumentParser(description="Parse AWS log data.")
     parser.add_argument(
         "url",
         help="Url to the file to parse",
     )
+
+    parser.add_argument(
+        "--log-type",
+        type=lambda x: getattr(LogType, x),
+        help="The the log type.",
+    )
+
     parser.add_argument(
         "--profile",
         help="The aws profile to use.",
     )
+
     parser.add_argument(
         "--region",
         help="The aws region to use.",
