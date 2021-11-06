@@ -1,16 +1,13 @@
 from dataclasses import dataclass
 from functools import cache
 
-from .aws import AwsClient
+from .aws import AwsService
 
 
 @dataclass
-class Ec2Client(AwsClient):
-
-    aws_client: AwsClient
-
+class Ec2Client(AwsService):
     def client(self):
-        return self.aws_client("ec2")
+        return self.aws_client.aws_client("ec2")
 
     @cache
     def get_instances(self, *ip_addresses):
@@ -43,7 +40,7 @@ class Ec2Client(AwsClient):
         instances = self.get_instances(*ip_addresses)
 
         for instance in instances:
-            name = self.get_tag(instance["Tags"], "Name")
+            name = self.aws_client.get_tag(instance["Tags"], "Name")
             for interface in instance["NetworkInterfaces"]:
                 names[interface["PrivateIpAddress"]] = name
 
