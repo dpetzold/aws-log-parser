@@ -42,14 +42,14 @@ setup(
     extras_require={
         "dev": (
             get_requirements("dev")
-            + get_requirements("test")
-            + get_requirements("cli"),
+            + get_requirements("test")  # noqa: W503
+            + get_requirements("cli"),  # noqa: W503
         ),
         "cli": get_requirements("cli"),
     },
     entry_points={
         "console_scripts": [
-            "aws-log-parser=aws_log_parser.cli:main",
+            "aws-log-parser=aws_log_parser.cli.main:main",
         ]
     },
 )
