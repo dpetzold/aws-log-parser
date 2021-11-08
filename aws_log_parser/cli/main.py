@@ -3,7 +3,6 @@ import logging
 
 from collections import Counter
 from dataclasses import dataclass
-from urllib.parse import urlparse
 
 from ..parser import AwsLogParser
 from ..models import LogType
@@ -30,20 +29,6 @@ class AwsLogParserCli:
     def ec2_service(self):
         return self.aws_service("ec2")
 
-    @property
-    def s3_service(self):
-        return self.aws_service("s3")
-
-    def read_file(self, path):
-        with open(path) as log_data:
-            yield from AwsLogParser(
-                log_type=LogType.ClassicLoadBalancer,
-            ).parse(log_data.readlines())
-
-    def read_files(self, paths):
-        for path in paths:
-            yield from self.read_file(path)
-
     def count_hosts(self, entries):
         hosts = Counter()
         for entry in entries:
@@ -55,21 +40,8 @@ class AwsLogParserCli:
             print(f"{names[host]} {count:,}")
 
     def run(self, args):
-        parsed = urlparse(args.url)
 
-        if parsed.scheme == "file":
-            raw_entries = self.read_files(parsed.path)
-
-        elif parsed.scheme == "s3":
-            raw_entries = self.s3_service.read_keys(
-                parsed.netloc, parsed.path.lstrip("/"), endswith=".log"
-            )
-
-        else:
-            raise ValueError(f"Unknown scheme {parsed.scheme}")
-
-        entries = AwsLogParser(log_type=args.log_type).parse(raw_entries)
-
+        entries = AwsLogParser(log_type=args.log_type).read_url(args.url)
         self.count_hosts(entries)
 
 

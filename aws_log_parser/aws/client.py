@@ -1,5 +1,6 @@
 import boto3
 import boto3.session
+import typing
 
 import importlib
 
@@ -9,8 +10,8 @@ from dataclasses import dataclass
 @dataclass
 class AwsClient:
 
-    region: str
-    profile: str
+    region: typing.Union[str, None]
+    profile: typing.Union[str, None]
 
     @property
     def aws_session(self):

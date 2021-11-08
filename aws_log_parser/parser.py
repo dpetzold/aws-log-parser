@@ -1,5 +1,3 @@
-import csv
-import dataclasses
 import datetime
 import logging
 import typing
@@ -13,7 +11,6 @@ from .models import (
     Host,
     HttpRequest,
     LoadBalancerErrorReason,
-    LogFormat,
 )
 
 logger = logging.getLogger(__name__)
@@ -80,17 +77,3 @@ def to_python(value, field):
     if field.name == "cookie":
         return to_cookie(value)
     return field.type(value)
-
-
-@dataclasses.dataclass
-class AwsLogParser:
-
-    log_type: LogFormat
-
-    def parse(self, content: typing.List[str]):
-        fields = dataclasses.fields(self.log_type.model)
-        for row in csv.reader(content, delimiter=self.log_type.delimiter):
-            if not row[0].startswith("#"):
-                yield self.log_type.model(
-                    *[to_python(value, field) for value, field in zip(row, fields)]
-                )
