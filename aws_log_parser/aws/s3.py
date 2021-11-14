@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .aws import AwsService
+from .client import AwsService
 
 
 @dataclass

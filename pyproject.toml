@@ -4,3 +4,23 @@ requires = [
     "wheel"
 ]
 build-backend = "setuptools.build_meta"
+
+
+[tool.pyright]
+include = [
+    "aws_log_parser"
+]
+
+exclude = [
+    "**/__pycache__",
+    "**/.eggs"
+]
+
+venv = "aws-log-parser-3.10.0"
+venvPath = "/home/derrick/.pyenv/versions/3.10.0/envs"
+
+reportMissingImports = true
+reportMissingTypeStubs = false
+
+pythonVersion = "3.10"
+pythonPlatform = "Linux"

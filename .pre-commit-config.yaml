@@ -21,7 +21,11 @@ repos:
   - id: black
     language_version: python3.10
 
-# - repo: https://github.com/necaris/pre-commit-pyright
-#  rev: 1.1.53
-#  hooks:
-#  -   id: pyright
+- repo: local
+  hooks:
+  - id: pyright
+    name: pyright
+    entry: pyright
+    language: node
+    types: [ python ]
+    pass_filenames: false

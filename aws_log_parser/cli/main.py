@@ -4,10 +4,9 @@ import logging
 from collections import Counter
 from dataclasses import dataclass
 
-from ..parser import AwsLogParser
+from ..aws import AwsClient
+from ..interface import AwsLogParser
 from ..models import LogType
-
-from .aws import AwsClient
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +21,9 @@ class AwsLogParserCli:
     def aws_client(self):
         return AwsClient(region=self.region, profile=self.profile)
 
-    def aws_service(self, service_name):
-        return self.aws_client.service_factory(service_name)
-
     @property
     def ec2_service(self):
-        return self.aws_service("ec2")
+        return self.aws_client.service_factory("ec2")
 
     def count_hosts(self, entries):
         hosts = Counter()
@@ -41,8 +37,7 @@ class AwsLogParserCli:
 
     def run(self, args):
 
-        entries = AwsLogParser(log_type=args.log_type).read_url(args.url)
-        self.count_hosts(entries)
+        self.count_hosts(AwsLogParser(log_type=args.log_type).read_url(args.url))
 
 
 def main():

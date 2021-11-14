@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import cache
 
-from .aws import AwsService
+from .client import AwsService
 
 
 @dataclass
