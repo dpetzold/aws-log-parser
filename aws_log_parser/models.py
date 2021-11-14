@@ -15,11 +15,6 @@ class NoValue(Enum):
         return f"<{self.__class__.__name__}.{self.name}>"
 
 
-@dataclass
-class LogEntry:
-    pass
-
-
 class HttpType(Enum):
     Http = "http"
     Https = "https"
@@ -81,6 +76,10 @@ class LoadBalancerErrorReason(Enum):
     LambdaSubnetIPAddressLimitReachedException = auto()
     LambdaThrottling = auto()
     LambdaUnhandled = auto()
+
+
+class LogEntry:
+    pass
 
 
 @dataclass

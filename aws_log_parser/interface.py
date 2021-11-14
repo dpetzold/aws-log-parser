@@ -5,7 +5,10 @@ from dataclasses import dataclass, fields
 from urllib.parse import urlparse
 
 from .aws import AwsClient
-from .models import LogFormat
+from .models import (
+    LogFormat,
+)
+
 from .parser import to_python
 
 
@@ -33,7 +36,7 @@ class AwsLogParser:
         model_fields = fields(self.log_type.model)
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
-                yield self.log_type.model(
+                yield self.log_type.model(  # type: ignore
                     *[
                         to_python(value, field)
                         for value, field in zip(row, model_fields)
