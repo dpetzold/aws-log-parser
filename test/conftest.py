@@ -30,7 +30,7 @@ def cookie_empty():
 
 
 @pytest.fixture
-def base_cloudfront_log_entry(cookie_zip_code):
+def base_cloudfront_log_entry():
     return CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
         time=datetime.time(1, 13, 11),

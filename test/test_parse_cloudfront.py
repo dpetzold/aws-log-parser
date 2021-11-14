@@ -4,15 +4,19 @@ import dataclasses
 
 from .conftest import parse_entry
 
-from aws_log_parser.models import LogType
+from aws_log_parser.models import (
+    CloudFrontWebDistributionLogEntry,
+    LogType,
+)
 
 
 def test_cloudfront_entry(base_cloudfront_log_entry, cloudfront_entry, cookie_zip_code):
     base_cloudfront_log_entry.cookie = cookie_zip_code
     entry = parse_entry(cloudfront_entry, LogType.CloudFront)
+    cfwdle = CloudFrontWebDistributionLogEntry(**dataclasses.asdict(entry))
     assert entry == base_cloudfront_log_entry
-    assert isinstance(entry.timestamp, datetime.datetime) is True
-    assert entry.timestamp == datetime.datetime(
+    assert isinstance(cfwdle.timestamp, datetime.datetime) is True
+    assert cfwdle.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
     )
 
@@ -22,9 +26,10 @@ def test_cloudfront_entry_broken_cookie(
 ):
     base_cloudfront_log_entry.cookie = cookie_empty
     entry = parse_entry(cloudfront_entry_broken_cookie, LogType.CloudFront)
-    assert entry == base_cloudfront_log_entry
-    assert isinstance(entry.timestamp, datetime.datetime) is True
-    assert entry.timestamp == datetime.datetime(
+    cfwdle = CloudFrontWebDistributionLogEntry(**dataclasses.asdict(entry))
+    assert cfwdle == base_cloudfront_log_entry
+    assert isinstance(cfwdle.timestamp, datetime.datetime) is True
+    assert cfwdle.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
     )
 
@@ -34,9 +39,10 @@ def test_cloudfront_entry_cookie_with_encoding(
 ):
     base_cloudfront_log_entry.cookie = cookie_with_space
     entry = parse_entry(cloudfront_entry_cookie_with_encoding, LogType.CloudFront)
+    cfwdle = CloudFrontWebDistributionLogEntry(**dataclasses.asdict(entry))
     assert entry == base_cloudfront_log_entry
-    assert isinstance(entry.timestamp, datetime.datetime) is True
-    assert entry.timestamp == datetime.datetime(
+    assert isinstance(cfwdle.timestamp, datetime.datetime) is True
+    assert cfwdle.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
     )
 

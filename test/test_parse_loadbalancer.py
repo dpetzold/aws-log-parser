@@ -17,7 +17,7 @@ from .conftest import parse_entry
 
 
 @pytest.fixture
-def base_load_balancer_log_entry(cookie_zip_code):
+def base_load_balancer_log_entry():
     return LoadBalancerLogEntry(
         type=HttpType.H2,
         timestamp=datetime.datetime(
