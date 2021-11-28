@@ -35,6 +35,10 @@ class AwsClient:
     def service_factory(self, service_name):
         return self.get_service(service_name)(aws_client=self)
 
+    @property
+    def s3_service(self):
+        return self.service_factory("s3")
+
 
 @dataclass
 class AwsService:

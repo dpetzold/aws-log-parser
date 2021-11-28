@@ -21,16 +21,10 @@ class AwsLogParser:
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
 
-    @property
-    def aws_client(self):
-        return AwsClient(region=self.region, profile=self.profile)
+    aws_client: typing.Optional[AwsClient] = None
 
-    def aws_service(self, service_name):
-        return self.aws_client.service_factory(service_name)
-
-    @property
-    def s3_service(self):
-        return self.aws_service("s3")
+    def __post_init__(self):
+        self.aws_client = AwsClient(region=self.region, profile=self.profile)
 
     def parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
@@ -52,8 +46,9 @@ class AwsLogParser:
             yield from self.read_file(path)
 
     def read_s3(self, bucket, prefix, endswith=None):
+        assert self.aws_client
         yield from self.parse(
-            self.s3_service.read_keys(bucket, prefix, endswith=endswith)
+            self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
         )
 
     def read_url(self, url):
