@@ -3,6 +3,7 @@ bpython
 flake8
 pre-commit
 setuptools
+sphinx
 tox
 twine
 wheel
