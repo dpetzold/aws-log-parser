@@ -11,7 +11,7 @@ class S3Service(AwsService):
 
     def list_files(self, bucket, prefix, sort_key, reverse=True):
 
-        paginator = self.client.get_paginator("list_objects_v2",).paginate(
+        paginator = self.client.get_paginator("list_objects_v2").paginate(
             Bucket=bucket,
             Prefix=prefix,
         )
@@ -30,5 +30,4 @@ class S3Service(AwsService):
             if endswith and not file["Key"].endswith(endswith):
                 continue
 
-            print(f"{bucket}/{file['Key']}")
             yield from self.read_key(bucket, file["Key"])
