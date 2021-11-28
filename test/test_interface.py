@@ -1,6 +1,5 @@
 import pytest
 import datetime
-import typing
 
 from dataclasses import dataclass
 from dateutil.tz import tzutc
@@ -34,10 +33,10 @@ class MockPaginator:
 
 @dataclass
 class MockStreamingFile:
-    contents: typing.BinaryIO
+    filename: str
 
     def iter_lines(self):
-        return self.contents.readlines()
+        return open(self.filename, "rb").readlines()
 
 
 class MockS3Client:
@@ -45,9 +44,7 @@ class MockS3Client:
         return MockPaginator()
 
     def get_object(self, **kwargs):
-        return {
-            "Body": MockStreamingFile(open("test/data/cloudfront-multiple.log", "rb"))
-        }
+        return {"Body": MockStreamingFile("test/data/cloudfront-multiple.log")}
 
 
 @pytest.fixture
