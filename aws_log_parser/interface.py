@@ -55,7 +55,7 @@ class AwsLogParser:
         parsed = urlparse(url)
 
         if parsed.scheme == "file":
-            yield from self.read_files(parsed.path)
+            yield from self.read_file(parsed.path)
 
         elif parsed.scheme == "s3":
             yield from self.read_s3(

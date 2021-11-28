@@ -4,6 +4,7 @@ import typing
 
 from dataclasses import dataclass
 from dateutil.tz import tzutc
+from pathlib import Path
 
 from aws_log_parser import (
     AwsLogParser,
@@ -53,8 +54,6 @@ class MockS3Client:
 def cloudfront_parser():
     return AwsLogParser(
         log_type=LogType.CloudFront,
-        profile="personal",
-        region="us-west-2",
     )
 
 
@@ -79,8 +78,16 @@ def test_read_s3(monkeypatch, cloudfront_parser):
     assert len(list(entries)) == 6
 
 
-def test_read_url(cloudfront_parser):
+def test_read_url_s3(monkeypatch, cloudfront_parser):
+    monkeypatch.setattr(S3Service, "client", MockS3Client())
     entries = cloudfront_parser.read_url(
         "s3://aws-logs-test-data/cloudfront-multiple.log"
+    )
+    assert len(list(entries)) == 6
+
+
+def test_read_url_file(cloudfront_parser):
+    entries = cloudfront_parser.read_url(
+        f"file://{Path(__file__).parent}/data/cloudfront-multiple.log"
     )
     assert len(list(entries)) == 6
