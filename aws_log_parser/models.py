@@ -10,11 +10,6 @@ from dataclasses import dataclass
 from http import cookies
 
 
-class NoValue(Enum):
-    def __repr__(self):
-        return f"<{self.__class__.__name__}.{self.name}>"
-
-
 class HttpType(Enum):
     Http = "http"
     Https = "https"

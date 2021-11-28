@@ -88,3 +88,8 @@ def test_read_url_file(cloudfront_parser):
         f"file://{Path(__file__).parent}/data/cloudfront-multiple.log"
     )
     assert len(list(entries)) == 6
+
+
+def test_read_url_gopher(cloudfront_parser):
+    with pytest.raises(ValueError):
+        list(cloudfront_parser.read_url("gopher://"))
