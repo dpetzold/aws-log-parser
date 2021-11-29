@@ -1,2 +1,4 @@
-[tool:pytest]
-addopts = --cov=auto_blocker --cov-report=html
+[run]
+branch = True
+omit =
+  aws_log_parser/cli/main.py

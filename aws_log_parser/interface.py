@@ -21,8 +21,6 @@ class AwsLogParser:
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
 
-    aws_client: typing.Optional[AwsClient] = None
-
     def __post_init__(self):
         self.aws_client = AwsClient(region=self.region, profile=self.profile)
 
@@ -57,13 +55,13 @@ class AwsLogParser:
         schemes are currently supported.
 
         :param url: The url to read from. Partial path's are supported
-                    for s3 urls. For example:
+            for s3 urls. For example::
 
-                    s3://bucket/prefix/
+                s3://bucket/prefix/
 
-                    or you can pass the full path to the file:
+            or you can pass the full path to the file::
 
-                    s3://bucket/prefix/logfile.log
+                s3://bucket/prefix/logfile.log
 
         :type kind: str
         :raise ValueError: If the url schema is not known.
