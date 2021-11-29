@@ -4,4 +4,4 @@ API
 .. autosummary::
    :toctree: generated
 
-   aws-log-parser
+   aws_log_parser

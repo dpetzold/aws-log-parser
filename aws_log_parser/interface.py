@@ -52,6 +52,25 @@ class AwsLogParser:
         )
 
     def read_url(self, url):
+        """
+        Yield parsed log entries from the given url. The file:// and s3://
+        schemes are currently supported.
+
+        :param url: The url to read from. Partial path's are supported
+                    for s3 urls. For example:
+
+                    s3://bucket/prefix/
+
+                    or you can pass the full path to the file:
+
+                    s3://bucket/prefix/logfile.log
+
+        :type kind: str
+        :raise ValueError: If the url schema is not known.
+        :return: Parsed log entries.
+        :rtype: Dependant on log_type.
+
+        """
         parsed = urlparse(url)
 
         if parsed.scheme == "file":
