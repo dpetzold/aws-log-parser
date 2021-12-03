@@ -50,18 +50,22 @@ class AwsLogParser:
         with open(path) as log_data:
             yield from self.parse(log_data.readlines())
 
-    def read_files(self, path):
+    def read_files(self, pathname):
         """
         Yield parsed log entries from the files in the given path.
         Low level function used by ``parse_url``.
 
-        :param path: The path to the files.
+        :param pathname: The path to the files.
         :type kind: str
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
-        for path in Path(path).glob(f"**/*{self.file_suffix}"):
+        path = Path(pathname)
+        if path.is_file():
             yield from self.read_file(path)
+        else:
+            for p in path.glob(f"**/*{self.file_suffix}"):
+                yield from self.read_file(p)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
