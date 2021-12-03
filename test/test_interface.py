@@ -54,17 +54,17 @@ def cloudfront_parser():
     )
 
 
-def test_read_file(cloudfront_parser):
+def test_parse_file(cloudfront_parser):
     entries = cloudfront_parser.read_file("test/data/cloudfront-multiple.log")
     assert len(list(entries)) == 6
 
 
-def test_read_files(cloudfront_parser):
-    entries = cloudfront_parser.read_files(["test/data/cloudfront-multiple.log"])
+def test_parse_files(cloudfront_parser):
+    entries = cloudfront_parser.read_files("test/data")
     assert len(list(entries)) == 6
 
 
-def test_read_s3(monkeypatch, cloudfront_parser):
+def test_parse_s3(monkeypatch, cloudfront_parser):
 
     monkeypatch.setattr(S3Service, "client", MockS3Client())
 
@@ -75,7 +75,7 @@ def test_read_s3(monkeypatch, cloudfront_parser):
     assert len(list(entries)) == 6
 
 
-def test_read_url_s3(monkeypatch, cloudfront_parser):
+def test_parse_url_s3(monkeypatch, cloudfront_parser):
     monkeypatch.setattr(S3Service, "client", MockS3Client())
     entries = cloudfront_parser.read_url(
         "s3://aws-logs-test-data/cloudfront-multiple.log"
@@ -83,13 +83,13 @@ def test_read_url_s3(monkeypatch, cloudfront_parser):
     assert len(list(entries)) == 6
 
 
-def test_read_url_file(cloudfront_parser):
+def test_parse_url_file(cloudfront_parser):
     entries = cloudfront_parser.read_url(
         f"file://{Path(__file__).parent}/data/cloudfront-multiple.log"
     )
     assert len(list(entries)) == 6
 
 
-def test_read_url_gopher(cloudfront_parser):
+def test_parse_url_gopher(cloudfront_parser):
     with pytest.raises(ValueError):
         list(cloudfront_parser.read_url("gopher://"))

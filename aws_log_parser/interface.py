@@ -2,6 +2,7 @@ import csv
 import typing
 
 from dataclasses import dataclass, fields
+from pathlib import Path
 from urllib.parse import urlparse
 
 from .aws import AwsClient
@@ -16,6 +17,7 @@ from .parser import to_python
 class AwsLogParser:
 
     log_type: LogFormat
+    file_suffix: str = ".log"
 
     # Optional
     region: typing.Optional[str] = None
@@ -36,15 +38,43 @@ class AwsLogParser:
                 )
 
     def read_file(self, path):
+        """
+        Yield parsed log entries from the given file.
+        Low level function used by ``parse_files``.
+
+        :param path: The path to the file.
+        :type kind: str
+        :return: Parsed log entries.
+        :rtype: Dependant on log_type.
+        """
         with open(path) as log_data:
             yield from self.parse(log_data.readlines())
 
-    def read_files(self, paths):
-        for path in paths:
+    def read_files(self, path):
+        """
+        Yield parsed log entries from the files in the given path.
+        Low level function used by ``parse_url``.
+
+        :param path: The path to the files.
+        :type kind: str
+        :return: Parsed log entries.
+        :rtype: Dependant on log_type.
+        """
+        for path in Path(path).glob(f"**/*{self.file_suffix}"):
             yield from self.read_file(path)
 
     def read_s3(self, bucket, prefix, endswith=None):
-        assert self.aws_client
+        """
+        Yield parsed log entries from the given s3 url.
+        Low level function used by ``parse_url``.
+
+        :param bucket: The S3 bucket.
+        :type kind: str
+        :param prefix: The S3 prefix.
+        :type kind: str
+        :return: Parsed log entries.
+        :rtype: Dependant on log_type.
+        """
         yield from self.parse(
             self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
         )
@@ -72,11 +102,13 @@ class AwsLogParser:
         parsed = urlparse(url)
 
         if parsed.scheme == "file":
-            yield from self.read_file(parsed.path)
+            yield from self.read_files(parsed.path)
 
         elif parsed.scheme == "s3":
             yield from self.read_s3(
-                parsed.netloc, parsed.path.lstrip("/"), endswith=".log"
+                parsed.netloc,
+                parsed.path.lstrip("/"),
+                endswith=self.file_suffix,
             )
 
         else:
