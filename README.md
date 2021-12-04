@@ -18,9 +18,6 @@ classes.
 ### CloudFront
 
 ```python
-    >>> from aws_log_parser import log_parser, LogType
-    >>> entries = log_parser(log_data, LogType.CloudFront)
-    >>> entries[0]
     CloudFrontWebDistributionLogEntry(
         date=datetime.date(2014, 5, 23),
         time=datetime.time(1, 13, 11),
@@ -52,9 +49,6 @@ classes.
 ### LoadBalancer
 
 ```python
-    >>> from aws_log_parser import log_parser, LogType
-    >>> entries = log_parser(log_data, LogType.LoadBalancer)
-    >>> entries[0]
     LoadBalancerLogEntry(
         type=HttpType.H2,
         timestamp=datetime.datetime(2019, 5, 10, 0, 55, 0, 578958, tzinfo=datetime.timezone.utc),

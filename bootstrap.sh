@@ -11,7 +11,7 @@ cd -
 
 echo "${VIRTUALENV_NAME}" > .python-version
 
-eval "$(pyenv init -)"
+eval "$(pyenv init --path)"
 eval "$(pyenv virtualenv-init -)"
 pyenv install -s ${PYTHON_VERSION}
 if [ ! -e "${PYENV_ROOT}/versions/${VIRTUALENV_NAME}" ]; then
