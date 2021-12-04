@@ -37,7 +37,7 @@ unique ips sorted from highest to lowest.
 
 See::
 
-https://github.com/dpetzold/aws-log-parser/blob/new-interface/examples/count-hosts.py
+https://github.com/dpetzold/aws-log-parser/blob/master/examples/count-hosts.py
 
 for a more complete example.
 
