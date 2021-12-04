@@ -3,24 +3,25 @@
 import argparse
 
 from collections import Counter
+from operator import attrgetter
 
 from aws_log_parser import AwsLogParser, LogType
 
 
-def count_ips(parser, url):
+def count_ips(entries, ip_attr):
 
-    entries = parser.read_url(url)
+    counter = Counter(attrgetter(ip_attr)(entry) for entry in entries)
 
-    counter = Counter()
-
-    for entry in entries:
-        counter[entry.client_ip] += 1
-
-    for ip, count in counter.items():
+    for ip, count in sorted(counter.items()):
         print(f"{ip}: {count}")
 
 
 def main():
+    """
+    python examples/count-hosts.py \
+        --log-type CloudFront \
+        s3://aws-logs-test-data/cloudfront-multiple.log
+    """
 
     parser = argparse.ArgumentParser(description="Parse AWS log data.")
     parser.add_argument(
@@ -45,13 +46,15 @@ def main():
 
     args = parser.parse_args()
 
-    parser = AwsLogParser(
-        log_type=LogType.CloudFront,
+    ip_attr = "client_ip" if args.log_type == LogType.CloudFront else "client.ip"
+
+    entries = AwsLogParser(
+        log_type=args.log_type,
         profile=args.profile,
         region=args.region,
-    )
+    ).read_url(args.url)
 
-    count_ips(parser, args.url)
+    count_ips(entries, ip_attr)
 
 
 main()

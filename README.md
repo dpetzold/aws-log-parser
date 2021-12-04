@@ -15,6 +15,28 @@ classes.
 
 ## Examples
 
+Retrieve a file from S3 and count the number of unique ips sorted from highest
+to lowest.
+
+
+```python
+    from collections import Counter
+    from aws_log_parser import AwsLogParser, LogType
+
+    entries = AwsLogParser(
+        log_type=LogType.CloudFront
+    ).read_url("s3://aws-logs-test-data/cloudfront-multiple.log")
+
+    counter = Counter(
+        entry.client_ip
+        for entry in entries
+    )
+
+    for ip, count in sorted(counter.items()):
+        print(f"{ip}: {count}")
+```
+
+
 ### CloudFront
 
 ```python
