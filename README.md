@@ -13,7 +13,7 @@ classes.
 
 `pip install aws-log-parser`
 
-## Examples
+## Example
 
 Retrieve a file from S3 and count the number of unique ips sorted from highest
 to lowest.
@@ -36,6 +36,7 @@ to lowest.
         print(f"{ip}: {count}")
 ```
 
+## Models
 
 ### CloudFront
 
@@ -109,6 +110,35 @@ to lowest.
         redirect_url=None,
         error_reason=None,
     )
+```
+
+### ClassicLoadBalancer
+
+```python
+    ClassicLoadBalancerLogEntry(
+        timestamp=datetime.datetime(2021, 12, 4, 0, 0, 8, 506102, tzinfo=datetime.timezone.utc),
+        elb='awseb-e-r-xxxxxxxx-xxxxxxxxxxxxx',
+        client=Host(ip='1.1.18.85', port=46806),
+        target=Host(ip='1.1.54.38', port=80),
+        request_processing_time=4.5e-05,
+        target_processing_time=0.004555,
+        response_processing_time=4.6e-05,
+        elb_status_code=200,
+        target_status_code=200,
+        received_bytes=0,
+        sent_bytes=639,
+        http_request=HttpRequest(
+            method='GET',
+            url='http://myservice:80/api/v1/111',
+            path='/api/v1/111',
+            query={},
+            protocol='HTTP/1.1',
+        ),
+        user_agent='requests/3.12.0',
+        ssl_cipher=None,
+        ssl_protocol=None
+    )
+
 ```
 
 ## Development
