@@ -15,9 +15,7 @@ classes.
 
 ## Example
 
-Retrieve a file from S3 and count the number of unique ips sorted from highest
-to lowest.
-
+Retrieve a file from S3 and print the count of unique ips sorted from highest to lowest.
 
 ```python
     from collections import Counter
