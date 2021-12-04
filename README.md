@@ -35,7 +35,7 @@ unique ips sorted from highest to lowest.
         print(f"{ip}: {count}")
 ```
 
-See::
+See:
 
 https://github.com/dpetzold/aws-log-parser/blob/master/examples/count-hosts.py
 
