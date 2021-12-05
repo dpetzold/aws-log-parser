@@ -1,3 +1,5 @@
+coveralls
 pytest
 pytest-cov
-python-coveralls
+pytest-datadir
+pytest-socket

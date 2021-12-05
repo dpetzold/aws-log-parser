@@ -1,5 +1,3 @@
-import csv
-import dataclasses
 import datetime
 import logging
 import typing
@@ -9,10 +7,10 @@ from http import cookies
 
 from .exceptions import UnknownHttpType
 from .models import (
-    LoadBalancerErrorReason,
     HttpType,
     Host,
     HttpRequest,
+    LoadBalancerErrorReason,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,35 +46,37 @@ def to_http_request(value):
 def to_cookie(value):
     cookie = cookies.SimpleCookie()
     cookie.load(rawdata=value)
-
-    cookiedict = {}
-
-    for key, morsel in cookie.items():
-        cookiedict[key.replace("%20", "")] = morsel.value
-
-    return cookiedict
+    return {urllib.parse.unquote(key): morsel.value for key, morsel in cookie.items()}
 
 
 def to_python(value, field):
-    value = value.rstrip('"').lstrip('"')
-    if field.type is datetime.datetime:
+    value = value.strip('"')
+
+    origin = typing.get_origin(field.type)
+    field_type = (
+        typing.get_args(field.type)[0]  # XXX: only supports Optional types
+        if origin == typing.Union
+        else field.type
+    )
+
+    if field_type is datetime.datetime:
         return to_datetime(value)
-    if field.type == datetime.date:
+    if field_type == datetime.date:
         return datetime.date.fromisoformat(value)
-    if field.type == datetime.time:
+    if field_type == datetime.time:
         return datetime.time.fromisoformat(value)
-    if field.type == typing.List[str]:
+    if field_type == typing.List[str]:
         return value.split(",")
     if value == "-":
         return None
-    if field.type == LoadBalancerErrorReason:
+    if field_type == LoadBalancerErrorReason:
         return getattr(LoadBalancerErrorReason, value)
-    if field.type == Host:
+    if field_type == Host:
         ip, port = value.split(":")
         return Host(ip, int(port))
-    if field.type == HttpRequest:
+    if field_type == HttpRequest:
         return to_http_request(value)
-    if field.type == HttpType:
+    if field_type == HttpType:
         return to_http_type(value)
     if field.name == "user_agent":
         return urllib.parse.unquote(value)
@@ -84,13 +84,4 @@ def to_python(value, field):
         return urllib.parse.parse_qs(value)
     if field.name == "cookie":
         return to_cookie(value)
-    return field.type(value)
-
-
-def log_parser(content, log_type):
-    fields = dataclasses.fields(log_type.model)
-    for row in csv.reader(content, delimiter=log_type.delimiter):
-        if not row[0].startswith("#"):
-            yield log_type.model(
-                *[to_python(value, field) for value, field in zip(row, fields)]
-            )
+    return field_type(value)

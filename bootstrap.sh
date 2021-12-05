@@ -2,7 +2,7 @@
 
 set -ex
 
-PYTHON_VERSION=3.8.6
+PYTHON_VERSION=3.10.0
 VIRTUALENV_NAME=aws-log-parser-${PYTHON_VERSION}
 
 cd $PYENV_ROOT
@@ -11,7 +11,7 @@ cd -
 
 echo "${VIRTUALENV_NAME}" > .python-version
 
-eval "$(pyenv init -)"
+eval "$(pyenv init --path)"
 eval "$(pyenv virtualenv-init -)"
 pyenv install -s ${PYTHON_VERSION}
 if [ ! -e "${PYENV_ROOT}/versions/${VIRTUALENV_NAME}" ]; then

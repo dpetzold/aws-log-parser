@@ -10,15 +10,6 @@ from dataclasses import dataclass
 from http import cookies
 
 
-class NoValue(Enum):
-    def __repr__(self):
-        return f"<{self.__class__.__name__}.{self.name}>"
-
-
-class LogEntry:
-    pass
-
-
 class HttpType(Enum):
     Http = "http"
     Https = "https"
@@ -82,7 +73,11 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
-@dataclass(frozen=True)
+class LogEntry:
+    pass
+
+
+@dataclass
 class ClassicLoadBalancerLogEntry(LogEntry):
     timestamp: datetime.datetime
     elb: str
@@ -101,36 +96,36 @@ class ClassicLoadBalancerLogEntry(LogEntry):
     ssl_protocol: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class LoadBalancerLogEntry(LogEntry):
     type: HttpType
     timestamp: datetime.datetime
     elb: str
     client: Host
-    target: Host
+    target: typing.Optional[Host]
     request_processing_time: float
     target_processing_time: float
     response_processing_time: float
     elb_status_code: int
-    target_status_code: int
+    target_status_code: typing.Optional[int]
     received_bytes: int
     sent_bytes: int
     http_request: HttpRequest
-    user_agent: str
-    ssl_cipher: str
-    ssl_protocol: str
+    user_agent: typing.Optional[str]
+    ssl_cipher: typing.Optional[str]
+    ssl_protocol: typing.Optional[str]
     target_group_arn: str
     trace_id: str
-    domain_name: str
-    chosen_cert_arn: str
+    domain_name: typing.Optional[str]
+    chosen_cert_arn: typing.Optional[str]
     matched_rule_priority: int
     request_creation_time: datetime.datetime
     actions_executed: typing.List[str]
-    redirect_url: str
-    error_reason: LoadBalancerErrorReason
+    redirect_url: typing.Optional[str]
+    error_reason: typing.Optional[LoadBalancerErrorReason]
 
 
-@dataclass(frozen=True)
+@dataclass
 class CloudFrontWebDistributionLogEntry(LogEntry):
     date: datetime.date
     time: datetime.time
@@ -143,18 +138,17 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     status_code: int
     referrer: str
     user_agent: str
-    uri_query: dict
-    # cookie: typing.Generator[str, cookies.SimpleCookie, None]
-    cookie: cookies.SimpleCookie
+    uri_query: typing.Optional[dict]
+    cookie: typing.Optional[cookies.SimpleCookie]
     edge_result_type: str
     edge_request_id: str
     host_header: str
     protocol: str
-    received_bytes: int
+    received_bytes: typing.Optional[int]
     time_taken: float
-    forwarded_for: str  # NOQA: E701 ??
-    ssl_protocol: str
-    ssl_chipher: str
+    forwarded_for: typing.Optional[str]
+    ssl_protocol: typing.Optional[str]
+    ssl_chipher: typing.Optional[str]
     edge_response_result_type: str
     protocol_version: str
     fle_encrypted_fields: str = ""
@@ -166,7 +160,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
         ).replace(tzinfo=datetime.timezone.utc)
 
 
-@dataclass(frozen=True)
+@dataclass
 class CloudFrontRTMPDistributionLogEntry(LogEntry):
     date: str
     time: str
@@ -183,14 +177,14 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     user_agent: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class LogFormat:
     name: str
-    model: LogEntry
-    delimiter: chr
+    model: typing.Type[LogEntry]
+    delimiter: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class LogType:
     ClassicLoadBalancer: LogFormat = LogFormat(
         name="ClassicLoadBalancer",

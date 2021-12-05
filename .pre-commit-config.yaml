@@ -1,6 +1,6 @@
 repos:
 - repo: git://github.com/pre-commit/pre-commit-hooks
-  rev: v3.4.0
+  rev: v4.0.1
   hooks:
   - id: check-added-large-files
   - id: check-json
@@ -11,12 +11,21 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://gitlab.com/pycqa/flake8
-  rev: 3.8.4
+  rev: 3.9.2
   hooks:
   - id: flake8
 
 - repo: https://github.com/ambv/black
-  rev: 20.8b1
+  rev: 21.10b0
   hooks:
   - id: black
-    language_version: python3.8
+    language_version: python3.10
+
+- repo: local
+  hooks:
+  - id: pyright
+    name: pyright
+    entry: pyright
+    language: node
+    types: [ python ]
+    pass_filenames: false

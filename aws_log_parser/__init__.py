@@ -1,2 +1,2 @@
-from .parser import log_parser  # NOQA
-from .models import LogType  # NOQA
+from .interface import AwsLogParser  # noqa: F401
+from .models import LogType  # noqa: F401
