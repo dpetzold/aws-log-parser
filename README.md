@@ -50,27 +50,34 @@ The avaliable `LogType`'s are:
     * ClassicLoadBalancer
     * LoadBalancer
 
-pass the appropriate log to `AwsLogParser`:
+pass the appropriate `LogType` to `AwsLogParser`:
 
 
 ```python
-    >>> parser = AwsLogParser(log_type=LogType.CloudFront)
+>>> parser = AwsLogParser(log_type=LogType.CloudFront)
 ```
 
 The general method to read files is `read_url`. It return a generator of
 dataclasses for the specified `LogType`. Currently the S3 and file
 schemes are supported.
 
-s3:
+S3:
 
 ```python
-    >>> entries = parser.read_url("s3://aws-logs-test-data/cloudfront")
+>>> entries = parser.read_url("s3://aws-logs-test-data/cloudfront")
 ```
 
 file:
 
 ```python
-    >>> entries = parser.read_url("file://{os.cwd()}/logs/cloudfront")
+>>> entries = parser.read_url("file://{os.cwd()}/logs/cloudfront")
+```
+
+iterate through the log entries:
+
+```python
+    for entry in entries
+        ...
 ```
 
 ## Models
