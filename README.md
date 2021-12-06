@@ -41,7 +41,58 @@ https://github.com/dpetzold/aws-log-parser/blob/master/examples/count-hosts.py
 
 for a more complete example.
 
+## Walkthrough
+
+The avaliable `LogType`'s are:
+
+    * CloudFront
+    * CloudFrontRTMP
+    * ClassicLoadBalancer
+    * LoadBalancer
+
+pass the appropriate `LogType` to `AwsLogParser`:
+
+
+```python
+>>> from aws_log_parser import AwsLogParser, LogType
+>>> parser = AwsLogParser(log_type=LogType.CloudFront)
+```
+
+The general method to read files is `read_url`. It returns a generator of
+dataclasses for the specified `LogType`. Currently the S3 and file
+schemes are supported.
+
+S3:
+
+```python
+>>> entries = parser.read_url("s3://aws-logs-test-data/cloudfront")
+```
+
+file:
+
+```python
+>>> entries = parser.read_url(f"file://{os.cwd()}/logs/cloudfront")
+```
+
+iterate through the log entries and do something:
+
+```python
+>>> for entry in entries:
+>>>     ...
+```
+
+If you need to set the AWS profile or region you can pass it to `AwsLogParser`:
+
+```python
+>>> parser = AwsLogParser(
+>>>     profile="myprofile",
+>>>     region="us-west-2",
+>>> )
+```
+
 ## Models
+
+See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models.py
 
 ### CloudFront
 
