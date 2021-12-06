@@ -19,7 +19,7 @@ def get_requirements(requirements):
 
 setup(
     name="aws-log-parser",
-    version="2.0.0",
+    version="2.0.1",
     description="Parse AWS CloudFront and LoadBalancer logs into Python dataclasses",
     long_description=(pathlib.Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
