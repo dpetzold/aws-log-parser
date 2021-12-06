@@ -81,6 +81,15 @@ iterate through the log entries and do something:
 >>>     ...
 ```
 
+If you need to set the AWS profile or region you can pass it to `AwsLogParser`:
+
+```python
+>>> parser = AwsLogParser(
+>>>     profile="myprofile",
+>>>     region="us-west-2",
+>>> )
+```
+
 ## Models
 
 See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models.py
