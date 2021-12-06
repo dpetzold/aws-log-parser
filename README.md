@@ -77,7 +77,7 @@ file:
 iterate through the log entries and do something:
 
 ```python
->>> for entry in entries
+>>> for entry in entries:
 >>>     ...
 ```
 
