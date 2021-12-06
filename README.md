@@ -74,7 +74,7 @@ file:
 >>> entries = parser.read_url(f"file://{os.cwd()}/logs/cloudfront")
 ```
 
-iterate through the log entries:
+iterate through the log entries and do something:
 
 ```python
 >>> for entry in entries
