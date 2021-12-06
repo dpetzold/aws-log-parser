@@ -58,7 +58,7 @@ pass the appropriate `LogType` to `AwsLogParser`:
 >>> parser = AwsLogParser(log_type=LogType.CloudFront)
 ```
 
-The general method to read files is `read_url`. It return a generator of
+The general method to read files is `read_url`. It returns a generator of
 dataclasses for the specified `LogType`. Currently the S3 and file
 schemes are supported.
 
@@ -71,14 +71,14 @@ S3:
 file:
 
 ```python
->>> entries = parser.read_url("file://{os.cwd()}/logs/cloudfront")
+>>> entries = parser.read_url(f"file://{os.cwd()}/logs/cloudfront")
 ```
 
 iterate through the log entries:
 
 ```python
-    for entry in entries
-        ...
+>>> for entry in entries
+>>>     ...
 ```
 
 ## Models
