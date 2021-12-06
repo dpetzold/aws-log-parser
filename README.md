@@ -54,6 +54,7 @@ pass the appropriate `LogType` to `AwsLogParser`:
 
 
 ```python
+>>> from aws_log_parser import AwsLogParser, LogType
 >>> parser = AwsLogParser(log_type=LogType.CloudFront)
 ```
 
