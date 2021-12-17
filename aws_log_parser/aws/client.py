@@ -10,8 +10,8 @@ from dataclasses import dataclass
 @dataclass
 class AwsClient:
 
-    region: typing.Union[str, None]
-    profile: typing.Union[str, None]
+    region: typing.Optional[str]
+    profile: typing.Optional[str]
 
     @property
     def aws_session(self):
