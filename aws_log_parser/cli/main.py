@@ -3,6 +3,7 @@ import logging
 
 from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
 
 from ..aws import AwsClient
 from ..interface import AwsLogParser
@@ -11,11 +12,19 @@ from ..models import LogType
 logger = logging.getLogger(__name__)
 
 
+class HashableDict(dict):
+    def __hash__(self):
+        return hash(frozenset(self.items()))
+
+
 @dataclass
 class AwsLogParserCli:
 
     region: str
     profile: str
+
+    def __hash__(self):
+        return hash(repr(self))
 
     @property
     def aws_client(self):
@@ -23,20 +32,75 @@ class AwsLogParserCli:
 
     @property
     def ec2_service(self):
-        return self.aws_client.service_factory("ec2")
+        return self.aws_client.aws_client("ec2")
+
+    def get_tag(self, tags, name):
+        for tag in tags:
+            if tag["Key"] == name:
+                return tag["Value"]
+
+    @lru_cache
+    def instance_pair(self, name, *private_ips):
+        return {private_ip: name for private_ip in private_ips}
+
+    @lru_cache
+    def instance_name(self, instance_id):
+        reservations = self.ec2_service.describe_instances(
+            Filters=[
+                {
+                    "Name": "instance-id",
+                    "Values": [instance_id],
+                },
+            ]
+        )["Reservations"]
+
+        instances = [
+            instance
+            for reservation in reservations
+            for instance in reservation["Instances"]
+        ]
+
+        d = {}
+        for instance in instances:
+            private_ips = [
+                address["PrivateIpAddress"]
+                for ni in instance["NetworkInterfaces"]
+                for address in ni["PrivateIpAddresses"]
+            ]
+
+            name = self.get_tag(instance["Tags"], "Name")
+
+            d.update(self.instance_pair(name, *private_ips))
+
+        return d
+
+    @lru_cache
+    def resolve_ip_addresses(self, *ips):
+        nis = self.ec2_service.describe_network_interfaces(
+            Filters=[
+                {
+                    "Name": "addresses.private-ip-address",
+                    "Values": ips,
+                },
+            ],
+        )["NetworkInterfaces"]
+
+        d = {}
+        for ni in nis:
+            d.update(self.instance_name(ni["Attachment"]["InstanceId"]))
+        return d
 
     def count_hosts(self, entries):
         hosts = Counter()
         for entry in entries:
             hosts[entry.client.ip] += 1
 
-        names = self.ec2_service.resolve_ip_addresses(list(hosts.keys()))
+        names = self.resolve_ip_addresses(*list(hosts.keys()))
 
-        for host, count in hosts.items():
-            print(f"{names[host]} {count:,}")
+        for host, count in sorted(hosts.items(), key=lambda t: t[1]):
+            print(f"{names.get(host, host)}: {count:,}")
 
     def run(self, args):
-
         self.count_hosts(AwsLogParser(log_type=args.log_type).read_url(args.url))
 
 
@@ -67,10 +131,18 @@ def main():
         "--count-hosts",
         help="Count the number of hosts",
     )
+    parser.add_argument(
+        "--instance-id",
+    )
 
     args = parser.parse_args()
 
-    AwsLogParserCli(
+    cli = AwsLogParserCli(
         region=args.region,
         profile=args.profile,
-    ).run(args)
+    )
+
+    if args.instance_id:
+        return cli.instance_name(args.instance_id)
+
+    cli.run(args)
