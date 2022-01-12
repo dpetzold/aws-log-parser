@@ -17,14 +17,17 @@ from .parser import to_python
 class AwsLogParser:
 
     log_type: LogFormat
-    file_suffix: str = ".log"
 
     # Optional
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
+    file_suffix: str = ".log"
+    verbose: bool = False
 
     def __post_init__(self):
-        self.aws_client = AwsClient(region=self.region, profile=self.profile)
+        self.aws_client = AwsClient(
+            region=self.region, profile=self.profile, verbose=self.verbose
+        )
 
     def parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
@@ -47,6 +50,8 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
+        if self.verbose:
+            print(f"Reading file://{path}")
         with open(path) as log_data:
             yield from self.parse(log_data.readlines())
 

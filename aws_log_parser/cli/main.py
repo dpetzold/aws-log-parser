@@ -17,6 +17,7 @@ class AwsLogParserCli:
 
     region: str
     profile: str
+    verbose: bool = False
 
     def __hash__(self):
         return hash(repr(self))
@@ -92,7 +93,14 @@ class AwsLogParserCli:
             print(f"{names.get(host, host)}: {count:,}")
 
     def run(self, args):
-        self.count_hosts(AwsLogParser(log_type=args.log_type).read_url(args.url))
+        self.count_hosts(
+            AwsLogParser(
+                log_type=args.log_type,
+                profile=self.profile,
+                region=self.region,
+                verbose=self.verbose,
+            ).read_url(args.url)
+        )
 
 
 def main():
@@ -110,6 +118,12 @@ def main():
     )
 
     parser.add_argument(
+        "--verbose",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
         "--profile",
         help="The aws profile to use.",
     )
@@ -118,10 +132,12 @@ def main():
         "--region",
         help="The aws region to use.",
     )
+
     parser.add_argument(
         "--count-hosts",
         help="Count the number of hosts",
     )
+
     parser.add_argument(
         "--instance-id",
     )
@@ -131,6 +147,7 @@ def main():
     cli = AwsLogParserCli(
         region=args.region,
         profile=args.profile,
+        verbose=args.verbose,
     )
 
     if args.instance_id:
