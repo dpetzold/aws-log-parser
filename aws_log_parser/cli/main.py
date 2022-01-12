@@ -12,11 +12,6 @@ from ..models import LogType
 logger = logging.getLogger(__name__)
 
 
-class HashableDict(dict):
-    def __hash__(self):
-        return hash(frozenset(self.items()))
-
-
 @dataclass
 class AwsLogParserCli:
 
@@ -38,10 +33,6 @@ class AwsLogParserCli:
         for tag in tags:
             if tag["Key"] == name:
                 return tag["Value"]
-
-    @lru_cache
-    def instance_pair(self, name, *private_ips):
-        return {private_ip: name for private_ip in private_ips}
 
     @lru_cache
     def instance_name(self, instance_id):
@@ -70,7 +61,7 @@ class AwsLogParserCli:
 
             name = self.get_tag(instance["Tags"], "Name")
 
-            d.update(self.instance_pair(name, *private_ips))
+            d.update({private_ip: name for private_ip in private_ips})
 
         return d
 
