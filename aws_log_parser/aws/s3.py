@@ -1,10 +1,16 @@
 from dataclasses import dataclass
 
-from .client import AwsService
+from .client import (
+    AwsClient,
+    AwsService,
+)
 
 
 @dataclass
 class S3Service(AwsService):
+
+    aws_client: AwsClient
+
     @property
     def client(self):
         return self.aws_client.aws_client("s3")
@@ -21,6 +27,8 @@ class S3Service(AwsService):
         return sorted(items, key=lambda x: x[sort_key], reverse=reverse)
 
     def read_key(self, bucket, key):
+        if self.aws_client.verbose:
+            print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
         yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
 

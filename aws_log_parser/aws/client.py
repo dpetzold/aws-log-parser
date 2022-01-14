@@ -12,6 +12,7 @@ class AwsClient:
 
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
+    verbose: bool = False
 
     @property
     def aws_session(self):
@@ -19,6 +20,14 @@ class AwsClient:
 
     def aws_client(self, service_name):
         return self.aws_session.client(service_name)
+
+    @property
+    def ec2_client(self):
+        return self.aws_session.client("ec2")
+
+    @property
+    def s3_client(self):
+        return self.aws_session.client("s3")
 
     def get_service(self, service_name):
         module = self.__module__.split(".")
@@ -38,6 +47,11 @@ class AwsClient:
     @property
     def s3_service(self):
         return self.service_factory("s3")
+
+    def get_tag(self, tags, name):
+        for tag in tags:
+            if tag["Key"] == name:
+                return tag["Value"]
 
 
 @dataclass
