@@ -12,7 +12,11 @@ logger = logging.getLogger(__name__)
 def count_hosts(entries):
     hosts = Counter()
     for entry in entries:
-        hosts[entry.instance_name] += 1
+        hosts[
+            entry.instance_name
+            if entry.instance_name
+            else (entry.instance_id if entry.instance_id else entry.client_ip)
+        ] += 1
 
     for instance_name, count in sorted(hosts.items(), key=lambda t: t[1]):
         print(f"{instance_name}: {count:,}")

@@ -49,9 +49,12 @@ class AwsLogParserPluginInstanceName:
         return d
 
     def augment(self, log_entry):
-        setattr(
-            log_entry,
-            self.attr_name,
-            self.instance_name(log_entry.client.ip).get(log_entry.client.ip),
+
+        instance_name = (
+            self.instance_name(log_entry.instance_id).get(log_entry.client_ip)
+            if log_entry.instance_id
+            else None
         )
+
+        setattr(log_entry, self.attr_name, instance_name)
         return log_entry
