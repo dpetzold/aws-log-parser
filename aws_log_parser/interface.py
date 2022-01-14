@@ -69,6 +69,7 @@ class AwsLogParser:
 
     def parse(self, content):
         for log_entry in self._parse(content):
+            # XXX: batch
             for plugin in self.plugins_loaded:
                 log_entry = plugin.augment(log_entry)
             yield log_entry
