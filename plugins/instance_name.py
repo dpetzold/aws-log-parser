@@ -8,7 +8,7 @@ from aws_log_parser.aws import AwsClient
 class AwsLogParserPluginInstanceName:
 
     aws_client: AwsClient
-    attr_name: str = "instance_id"
+    attr_name: str = "instance_name"
 
     def __hash__(self):
         return hash(repr(self))
@@ -52,5 +52,6 @@ class AwsLogParserPluginInstanceName:
         setattr(
             log_entry,
             self.attr_name,
-            self.instance_name(log_entry.client_ip).get(log_entry.client_ip),
+            self.instance_name(log_entry.client.ip).get(log_entry.client.ip),
         )
+        return log_entry

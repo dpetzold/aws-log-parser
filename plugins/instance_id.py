@@ -31,5 +31,6 @@ class AwsLogParserPluginInstanceId:
         return {ni["PrivateIpAddress"]: ni["Attachment"]["InstanceId"] for ni in nis}
 
     def augment(self, log_entry):
-        instance_ids = self.instance_ids(log_entry.client_ip)
-        setattr(log_entry, self.attr_name, instance_ids.get(log_entry.client_ip))
+        instance_ids = self.instance_ids(log_entry.client.ip)
+        setattr(log_entry, self.attr_name, instance_ids.get(log_entry.client.ip))
+        return log_entry

@@ -1,7 +1,10 @@
 import csv
 import typing
+import importlib
+import importlib.util
+import sys
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -24,12 +27,23 @@ class AwsLogParser:
     file_suffix: str = ".log"
     verbose: bool = False
 
+    plugin_paths: typing.List[str] = field(default_factory=list)
+    plugins: typing.List[str] = field(default_factory=list)
+
     def __post_init__(self):
         self.aws_client = AwsClient(
             region=self.region, profile=self.profile, verbose=self.verbose
         )
 
-    def parse(self, content: typing.List[str]):
+        self.plugins_loaded = [
+            self.load_plugin(
+                plugin,
+                self.plugin_paths[0],
+            )
+            for plugin in self.plugins
+        ]
+
+    def _parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
@@ -39,6 +53,25 @@ class AwsLogParser:
                         for value, field in zip(row, model_fields)
                     ]
                 )
+
+    def load_plugin(self, plugin, plugin_path):
+        plugin_module, plugin_classs = plugin.split(":")
+        spec = importlib.util.spec_from_file_location(
+            plugin_module, f"{plugin_path}/{plugin_module}.py"
+        )
+        if spec is None:
+            raise ValueError("{plugin} not found")
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[plugin_module] = module
+        spec.loader.exec_module(module)  # type: ignore
+        return getattr(module, plugin_classs)(aws_client=self.aws_client)
+
+    def parse(self, content):
+        for log_entry in self._parse(content):
+            for plugin in self.plugins_loaded:
+                log_entry = plugin.augment(log_entry)
+            yield log_entry
 
     def read_file(self, path):
         """
