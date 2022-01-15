@@ -5,7 +5,7 @@ from aws_log_parser.aws import AwsClient
 
 
 @dataclass
-class AwsLogParserPluginInstanceName:
+class AwsPluginInstanceName:
 
     aws_client: AwsClient
     attr_name: str = "instance_name"

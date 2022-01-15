@@ -5,10 +5,14 @@ from aws_log_parser.aws import AwsClient
 
 
 @dataclass
-class AwsLogParserPluginInstanceId:
+class AwsPluginInstanceId:
+    """
+    Resolve the instance_id from its private ip address.
+    """
 
     aws_client: AwsClient
     attr_name: str = "instance_id"
+    batch_size: int = 256
 
     def __hash__(self):
         return hash(repr(self))

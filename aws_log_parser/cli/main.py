@@ -1,25 +1,46 @@
 import argparse
 import logging
 
+from rich.console import Console
+from rich.table import Table
+
 from collections import Counter
 
 from ..interface import AwsLogParser
 from ..models import LogType
 
+console = Console()
 logger = logging.getLogger(__name__)
 
 
 def count_hosts(entries):
-    hosts = Counter()
+    counter = Counter()
     for entry in entries:
-        hosts[
+        counter[
             entry.instance_name
             if entry.instance_name
             else (entry.instance_id if entry.instance_id else entry.client_ip)
         ] += 1
 
-    for instance_name, count in sorted(hosts.items(), key=lambda t: t[1]):
-        print(f"{instance_name}: {count:,}")
+    table = Table(show_header=True)
+    table.add_column("Instance Name", justify="left")
+    table.add_column("Requests", justify="right")
+    table.add_column("%", justify="right")
+    table.add_column("i", justify="right")
+
+    total = counter.total()
+    for i, pair in enumerate(sorted(counter.items(), key=lambda t: t[1])):
+        instance_name, count = pair
+        table.add_row(
+            instance_name,
+            f"{count:,}",
+            f"({(count/total) * 100:.2f}%)",
+            end_section=i == len(counter) - 1,
+        )
+
+    table.add_row("Total", f"{total:,}", "")
+
+    console.print(table)
 
 
 def main():
@@ -72,8 +93,8 @@ def main():
             "/home/derrick/src/aws-log-parser/plugins",
         ],
         plugins=[
-            "instance_id:AwsLogParserPluginInstanceId",
-            "instance_name:AwsLogParserPluginInstanceName",
+            "instance_id:AwsPluginInstanceId",
+            "instance_name:AwsPluginInstanceName",
         ],
     ).read_url(args.url)
 
