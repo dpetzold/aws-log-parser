@@ -12,6 +12,7 @@ from .aws import AwsClient
 from .models import (
     LogFormat,
 )
+from .util import batcher
 
 from .parser import to_python
 
@@ -67,10 +68,14 @@ class AwsLogParser:
         spec.loader.exec_module(module)  # type: ignore
         return getattr(module, plugin_classs)(aws_client=self.aws_client)
 
+    def run_plugin(self, plugin, log_entries):
+        for batch in batcher(log_entries, plugin.batch_size):
+            yield from plugin.augment(batch)
+
     def parse(self, content):
         log_entries = self._parse(content)
         for plugin in self.plugins_loaded:
-            log_entries = plugin.augment(log_entries)
+            log_entries = self.run_plugin(plugin, log_entries)
         yield from log_entries
 
     def read_file(self, path):

@@ -4,7 +4,6 @@ from dataclasses import dataclass, field
 from pprint import pprint
 
 from aws_log_parser.aws import AwsClient
-from aws_log_parser.util import batcher
 
 
 @dataclass
@@ -15,7 +14,7 @@ class AwsPluginInstanceId:
 
     aws_client: AwsClient
     attr_name: str = "instance_id"
-    batch_size: int = 1024 * 10
+    batch_size: int = 1024 * 5
 
     _instance_mappings: typing.Dict[str, str] = field(default_factory=dict)
 
@@ -58,15 +57,10 @@ class AwsPluginInstanceId:
 
         return self._instance_mappings
 
-    def augment(self, log_entries):
-        for batch in batcher(log_entries, self.batch_size):
+    def augment(self, batch):
 
-            instance_ids = self.instance_ids(
-                *{log_entry.client_ip for log_entry in batch}
-            )
+        instance_ids = self.instance_ids(*{log_entry.client_ip for log_entry in batch})
 
-            for log_entry in batch:
-                setattr(
-                    log_entry, self.attr_name, instance_ids.get(log_entry.client_ip)
-                )
-                yield log_entry
+        for log_entry in batch:
+            setattr(log_entry, self.attr_name, instance_ids.get(log_entry.client_ip))
+            yield log_entry
