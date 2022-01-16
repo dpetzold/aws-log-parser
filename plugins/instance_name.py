@@ -8,10 +8,6 @@ class AwsPluginInstanceName(AwsPluginBase):
 
     attr_name: str = "instance_name"
 
-    @property
-    def ec2_client(self):
-        return self.aws_client.ec2_client
-
     def query(self, instance_ids):
         reservations = self.ec2_client.describe_instances(
             Filters=[
@@ -38,8 +34,6 @@ class AwsPluginInstanceName(AwsPluginBase):
             name = self.aws_client.get_tag(instance["Tags"], "Name")
 
             self._cache.update({private_ip: name for private_ip in private_ips})
-
-        return self._cache
 
     def augment(self, log_entries):
 
