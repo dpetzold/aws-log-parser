@@ -1,10 +1,12 @@
 import argparse
 import logging
 
+from collections import Counter
+from pathlib import Path
+
 from rich.console import Console
 from rich.table import Table
 
-from collections import Counter
 
 from ..interface import AwsLogParser
 from ..models import LogType
@@ -91,7 +93,7 @@ def main():
         region=args.region,
         verbose=args.verbose,
         plugin_paths=[
-            "/home/derrick/src/aws-log-parser/plugins",
+            Path(__file__).parents[2] / "plugins",
         ],
         plugins=[
             "instance_id:AwsPluginInstanceId",

@@ -28,7 +28,7 @@ class AwsLogParser:
     file_suffix: str = ".log"
     verbose: bool = False
 
-    plugin_paths: typing.List[str] = field(default_factory=list)
+    plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
     plugins: typing.List[str] = field(default_factory=list)
 
     def __post_init__(self):
