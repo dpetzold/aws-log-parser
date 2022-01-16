@@ -1,29 +1,19 @@
 from dataclasses import dataclass
-from functools import lru_cache
 
-from aws_log_parser.aws import AwsClient
+from aws_log_parser.aws.plugin import AwsPluginBase
 
 
 @dataclass
-class AwsLogParserPluginInstanceName:
+class AwsPluginInstanceName(AwsPluginBase):
 
-    aws_client: AwsClient
-    attr_name: str = "instance_id"
+    attr_name: str = "instance_name"
 
-    def __hash__(self):
-        return hash(repr(self))
-
-    @property
-    def ec2_client(self):
-        return self.aws_client.ec2_client
-
-    @lru_cache
-    def instance_name(self, instance_id):
+    def query(self, instance_ids):
         reservations = self.ec2_client.describe_instances(
             Filters=[
                 {
                     "Name": "instance-id",
-                    "Values": [instance_id],
+                    "Values": instance_ids,
                 },
             ]
         )["Reservations"]
@@ -34,7 +24,6 @@ class AwsLogParserPluginInstanceName:
             for instance in reservation["Instances"]
         ]
 
-        d = {}
         for instance in instances:
             private_ips = [
                 address["PrivateIpAddress"]
@@ -44,13 +33,21 @@ class AwsLogParserPluginInstanceName:
 
             name = self.aws_client.get_tag(instance["Tags"], "Name")
 
-            d.update({private_ip: name for private_ip in private_ips})
+            self._cache.update({private_ip: name for private_ip in private_ips})
 
-        return d
+    def augment(self, log_entries):
 
-    def augment(self, log_entry):
-        setattr(
-            log_entry,
-            self.attr_name,
-            self.instance_name(log_entry.client_ip).get(log_entry.client_ip),
+        instance_names = self.lookup(
+            {
+                log_entry.instance_id
+                for log_entry in log_entries
+                if (
+                    log_entry.instance_id
+                    and not log_entry.instance_id.startswith("ecs:")  # noqa: W503
+                )
+            }
         )
+
+        for log_entry in log_entries:
+            setattr(log_entry, self.attr_name, instance_names.get(log_entry.client_ip))
+            yield log_entry

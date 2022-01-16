@@ -95,6 +95,13 @@ class ClassicLoadBalancerLogEntry(LogEntry):
     ssl_cipher: str
     ssl_protocol: str
 
+    instance_id: typing.Optional[str] = None
+
+    @property
+    def client_ip(self):
+        if self.client:
+            return self.client.ip
+
 
 @dataclass
 class LoadBalancerLogEntry(LogEntry):

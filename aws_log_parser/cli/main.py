@@ -1,106 +1,47 @@
 import argparse
 import logging
 
-from collections import Counter
-from dataclasses import dataclass
-from functools import lru_cache
+from rich.console import Console
+from rich.table import Table
 
-from ..aws import AwsClient
+from collections import Counter
+
 from ..interface import AwsLogParser
 from ..models import LogType
 
+console = Console()
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class AwsLogParserCli:
+def count_hosts(entries):
+    counter = Counter()
+    for entry in entries:
+        counter[
+            entry.instance_name
+            if hasattr(entry, "instance_name") and entry.instance_name
+            else (entry.instance_id if entry.instance_id else entry.client_ip)
+        ] += 1
 
-    region: str
-    profile: str
-    verbose: bool = False
+    table = Table(show_header=True)
+    table.add_column("", justify="left")
+    table.add_column("Instance Name", justify="left")
+    table.add_column("Requests", justify="right")
+    table.add_column("%", justify="right")
 
-    def __hash__(self):
-        return hash(repr(self))
-
-    @property
-    def aws_client(self):
-        return AwsClient(region=self.region, profile=self.profile)
-
-    @property
-    def ec2_service(self):
-        return self.aws_client.aws_client("ec2")
-
-    def get_tag(self, tags, name):
-        for tag in tags:
-            if tag["Key"] == name:
-                return tag["Value"]
-
-    @lru_cache
-    def instance_name(self, instance_id):
-        reservations = self.ec2_service.describe_instances(
-            Filters=[
-                {
-                    "Name": "instance-id",
-                    "Values": [instance_id],
-                },
-            ]
-        )["Reservations"]
-
-        instances = [
-            instance
-            for reservation in reservations
-            for instance in reservation["Instances"]
-        ]
-
-        d = {}
-        for instance in instances:
-            private_ips = [
-                address["PrivateIpAddress"]
-                for ni in instance["NetworkInterfaces"]
-                for address in ni["PrivateIpAddresses"]
-            ]
-
-            name = self.get_tag(instance["Tags"], "Name")
-
-            d.update({private_ip: name for private_ip in private_ips})
-
-        return d
-
-    @lru_cache
-    def resolve_ip_addresses(self, *ips):
-        nis = self.ec2_service.describe_network_interfaces(
-            Filters=[
-                {
-                    "Name": "addresses.private-ip-address",
-                    "Values": ips,
-                },
-            ],
-        )["NetworkInterfaces"]
-
-        d = {}
-        for ni in nis:
-            d.update(self.instance_name(ni["Attachment"]["InstanceId"]))
-        return d
-
-    def count_hosts(self, entries):
-        hosts = Counter()
-        for entry in entries:
-            hosts[entry.client.ip] += 1
-
-        names = self.resolve_ip_addresses(*list(hosts.keys()))
-
-        for host, count in sorted(hosts.items(), key=lambda t: t[1]):
-            print(f"{names.get(host, host)}: {count:,}")
-
-    def run(self, args):
-        self.count_hosts(
-            AwsLogParser(
-                log_type=args.log_type,
-                profile=self.profile,
-                region=self.region,
-                verbose=self.verbose,
-            ).read_url(args.url)
+    total = counter.total()
+    for i, pair in enumerate(sorted(counter.items(), key=lambda t: t[1]), 1):
+        instance_name, count = pair
+        table.add_row(
+            str(i),
+            instance_name,
+            f"{count:,}",
+            f"({(count/total) * 100:.2f}%)",
+            end_section=i == len(counter),
         )
+
+    table.add_row("", "Total", f"{total:,}", "")
+
+    console.print(table)
 
 
 def main():
@@ -144,13 +85,18 @@ def main():
 
     args = parser.parse_args()
 
-    cli = AwsLogParserCli(
-        region=args.region,
+    log_entries = AwsLogParser(
+        log_type=args.log_type,
         profile=args.profile,
+        region=args.region,
         verbose=args.verbose,
-    )
+        plugin_paths=[
+            "/home/derrick/src/aws-log-parser/plugins",
+        ],
+        plugins=[
+            "instance_id:AwsPluginInstanceId",
+            "instance_name:AwsPluginInstanceName",
+        ],
+    ).read_url(args.url)
 
-    if args.instance_id:
-        return cli.instance_name(args.instance_id)
-
-    cli.run(args)
+    count_hosts(log_entries)
