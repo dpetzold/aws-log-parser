@@ -17,12 +17,15 @@ logger = logging.getLogger(__name__)
 
 def count_hosts(entries):
     counter = Counter()
+
+    """
+    entry.instance_name
+    if hasattr(entry, "instance_name") and entry.instance_name
+    else (entry.instance_id if entry.instance_id else entry.client_ip)
+    """
+
     for entry in entries:
-        counter[
-            entry.instance_name
-            if hasattr(entry, "instance_name") and entry.instance_name
-            else (entry.instance_id if entry.instance_id else entry.client_ip)
-        ] += 1
+        counter[entry.network] += 1
 
     table = Table(show_header=True)
     table.add_column("", justify="left")
@@ -96,8 +99,9 @@ def main():
             Path(__file__).parents[2] / "plugins",
         ],
         plugins=[
-            "instance_id:AwsPluginInstanceId",
-            "instance_name:AwsPluginInstanceName",
+            #            "instance_id:AwsPluginInstanceId",
+            #            "instance_name:AwsPluginInstanceName",
+            "radb:RadbPlugin",
         ],
     ).read_url(args.url)
 

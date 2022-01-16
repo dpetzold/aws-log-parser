@@ -66,7 +66,11 @@ class AwsLogParser:
         module = importlib.util.module_from_spec(spec)
         sys.modules[plugin_module] = module
         spec.loader.exec_module(module)  # type: ignore
-        return getattr(module, plugin_classs)(aws_client=self.aws_client)
+
+        kwargs = {}
+        if hasattr(plugin, "aws_client") and plugin.aws_client is None:
+            kwargs = {"aws_cliend": self.aws_client}
+        return getattr(module, plugin_classs)(**kwargs)
 
     def run_plugin(self, plugin, log_entries):
         for batch in batcher(log_entries, plugin.batch_size):
