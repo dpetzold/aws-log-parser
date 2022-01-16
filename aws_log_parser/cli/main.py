@@ -18,7 +18,7 @@ def count_hosts(entries):
     for entry in entries:
         counter[
             entry.instance_name
-            if entry.instance_name
+            if hasattr(entry, "instance_name") and entry.instance_name
             else (entry.instance_id if entry.instance_id else entry.client_ip)
         ] += 1
 
@@ -95,7 +95,7 @@ def main():
         ],
         plugins=[
             "instance_id:AwsPluginInstanceId",
-            "instance_name:AwsPluginInstanceName",
+            # "instance_name:AwsPluginInstanceName",
         ],
     ).read_url(args.url)
 

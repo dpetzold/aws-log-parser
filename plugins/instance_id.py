@@ -21,6 +21,14 @@ class AwsPluginInstanceId:
     def ec2_client(self):
         return self.aws_client.ec2_client
 
+    def instance_id(self, ni):
+
+        if ni["InterfaceType"] == "branch":
+            ecs_service = self.aws_client.get_tag(ni["TagSet"], "aws:ecs:serviceName")
+            return f"ecs:{ecs_service}"
+
+        return ni["Attachment"]["InstanceId"] if ni.get("Attachment") else None
+
     @lru_cache
     def instance_ids(self, *ips):
         nis = self.ec2_client.describe_network_interfaces(
@@ -32,7 +40,7 @@ class AwsPluginInstanceId:
             ],
         )["NetworkInterfaces"]
 
-        return {ni["PrivateIpAddress"]: ni["Attachment"]["InstanceId"] for ni in nis}
+        return {ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis}
 
     def augment(self, log_entry):
         instance_ids = self.instance_ids(log_entry.client_ip)
