@@ -14,9 +14,9 @@ class AwsPluginInstanceId:
 
     aws_client: AwsClient
     attr_name: str = "instance_id"
-    batch_size: int = 1024 * 5
+    batch_size: int = 1024 * 8
 
-    _instance_mappings: typing.Dict[str, str] = field(default_factory=dict)
+    _cache: typing.Dict[str, str] = field(default_factory=dict)
 
     @property
     def ec2_client(self):
@@ -30,8 +30,7 @@ class AwsPluginInstanceId:
 
         return ni["Attachment"]["InstanceId"] if ni.get("Attachment") else None
 
-    def query(self, *ips):
-        pprint(ips)
+    def query(self, ips):
         nis = self.ec2_client.describe_network_interfaces(
             Filters=[
                 {
@@ -41,26 +40,29 @@ class AwsPluginInstanceId:
             ],
         )["NetworkInterfaces"]
 
-        return {ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis}
+        self._cache.update({ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis})
 
-    def instance_ids(self, *ips):
+    def instance_ids(self, ips):
 
         unknown = []
 
+        # xxx: set atrimatic
         for ip in ips:
-            instance_id = self._instance_mappings.get(ip)
+            instance_id = self._cache.get(ip)
             if not instance_id:
                 unknown.append(ip)
 
         if unknown:
-            self._instance_mappings.update(self.query(*unknown))
+            self.query(unknown)
 
-        return self._instance_mappings
+        return self._cache
 
-    def augment(self, batch):
+    def augment(self, log_entries):
 
-        instance_ids = self.instance_ids(*{log_entry.client_ip for log_entry in batch})
+        instance_ids = self.instance_ids(
+            {log_entry.client_ip for log_entry in log_entries}
+        )
 
-        for log_entry in batch:
+        for log_entry in log_entries:
             setattr(log_entry, self.attr_name, instance_ids.get(log_entry.client_ip))
             yield log_entry

@@ -95,7 +95,7 @@ def main():
         ],
         plugins=[
             "instance_id:AwsPluginInstanceId",
-            # "instance_name:AwsPluginInstanceName",
+            "instance_name:AwsPluginInstanceName",
         ],
     ).read_url(args.url)
 

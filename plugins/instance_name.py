@@ -1,5 +1,7 @@
-from dataclasses import dataclass
-from functools import lru_cache
+import typing
+from dataclasses import dataclass, field
+
+from pprint import pprint
 
 from aws_log_parser.aws import AwsClient
 
@@ -9,21 +11,21 @@ class AwsPluginInstanceName:
 
     aws_client: AwsClient
     attr_name: str = "instance_name"
+    batch_size: int = 1024 * 8
 
-    def __hash__(self):
-        return hash(repr(self))
+    _cache: typing.Dict[str, str] = field(default_factory=dict)
 
     @property
     def ec2_client(self):
         return self.aws_client.ec2_client
 
-    @lru_cache
-    def instance_name(self, instance_id):
+    def query(self, instance_ids):
+        pprint(instance_ids)
         reservations = self.ec2_client.describe_instances(
             Filters=[
                 {
                     "Name": "instance-id",
-                    "Values": [instance_id],
+                    "Values": instance_ids,
                 },
             ]
         )["Reservations"]
@@ -34,7 +36,6 @@ class AwsPluginInstanceName:
             for instance in reservation["Instances"]
         ]
 
-        d = {}
         for instance in instances:
             private_ips = [
                 address["PrivateIpAddress"]
@@ -44,17 +45,39 @@ class AwsPluginInstanceName:
 
             name = self.aws_client.get_tag(instance["Tags"], "Name")
 
-            d.update({private_ip: name for private_ip in private_ips})
+            self._cache.update({private_ip: name for private_ip in private_ips})
 
-        return d
+        return self._cache
 
-    def augment(self, log_entry):
+    def instance_names(self, instance_ids):
 
-        instance_name = (
-            self.instance_name(log_entry.instance_id).get(log_entry.client_ip)
-            if log_entry.instance_id
-            else None
+        unknown = []
+
+        for instance_id in instance_ids:
+            instance_name = self._cache.get(instance_id)
+            if not instance_name:
+                unknown.append(instance_id)
+
+        if unknown:
+            self.query(unknown)
+
+        return self._cache
+
+    def augment(self, log_entries):
+
+        instance_names = self.instance_names(
+            {
+                log_entry.instance_id
+                for log_entry in log_entries
+                if (
+                    log_entry.instance_id
+                    and not log_entry.instance_id.startswith("ecs:")
+                )
+            }
         )
 
-        setattr(log_entry, self.attr_name, instance_name)
-        return log_entry
+        pprint(instance_names)
+
+        for log_entry in log_entries:
+            setattr(log_entry, self.attr_name, instance_names.get(log_entry.client_ip))
+            yield log_entry
