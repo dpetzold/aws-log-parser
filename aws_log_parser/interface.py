@@ -68,11 +68,10 @@ class AwsLogParser:
         return getattr(module, plugin_classs)(aws_client=self.aws_client)
 
     def parse(self, content):
-        for log_entry in self._parse(content):
-            # XXX: batch
-            for plugin in self.plugins_loaded:
-                log_entry = plugin.augment(log_entry)
-            yield log_entry
+        log_entries = self._parse(content)
+        for plugin in self.plugins_loaded:
+            log_entries = plugin.augment(log_entries)
+        yield from log_entries
 
     def read_file(self, path):
         """

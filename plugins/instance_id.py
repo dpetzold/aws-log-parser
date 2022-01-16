@@ -1,7 +1,10 @@
-from dataclasses import dataclass
-from functools import lru_cache
+import typing
+from dataclasses import dataclass, field
+
+from pprint import pprint
 
 from aws_log_parser.aws import AwsClient
+from aws_log_parser.util import batcher
 
 
 @dataclass
@@ -12,10 +15,9 @@ class AwsPluginInstanceId:
 
     aws_client: AwsClient
     attr_name: str = "instance_id"
-    batch_size: int = 256
+    batch_size: int = 1024 * 10
 
-    def __hash__(self):
-        return hash(repr(self))
+    _instance_mappings: typing.Dict[str, str] = field(default_factory=dict)
 
     @property
     def ec2_client(self):
@@ -29,8 +31,8 @@ class AwsPluginInstanceId:
 
         return ni["Attachment"]["InstanceId"] if ni.get("Attachment") else None
 
-    @lru_cache
-    def instance_ids(self, *ips):
+    def query(self, *ips):
+        pprint(ips)
         nis = self.ec2_client.describe_network_interfaces(
             Filters=[
                 {
@@ -42,7 +44,29 @@ class AwsPluginInstanceId:
 
         return {ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis}
 
-    def augment(self, log_entry):
-        instance_ids = self.instance_ids(log_entry.client_ip)
-        setattr(log_entry, self.attr_name, instance_ids.get(log_entry.client_ip))
-        return log_entry
+    def instance_ids(self, *ips):
+
+        unknown = []
+
+        for ip in ips:
+            instance_id = self._instance_mappings.get(ip)
+            if not instance_id:
+                unknown.append(ip)
+
+        if unknown:
+            self._instance_mappings.update(self.query(*unknown))
+
+        return self._instance_mappings
+
+    def augment(self, log_entries):
+        for batch in batcher(log_entries, self.batch_size):
+
+            instance_ids = self.instance_ids(
+                *{log_entry.client_ip for log_entry in batch}
+            )
+
+            for log_entry in batch:
+                setattr(
+                    log_entry, self.attr_name, instance_ids.get(log_entry.client_ip)
+                )
+                yield log_entry
