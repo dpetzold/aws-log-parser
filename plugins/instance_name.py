@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from pprint import pprint
-
 from aws_log_parser.aws.plugin import AwsPluginBase
 
 
@@ -15,7 +13,6 @@ class AwsPluginInstanceName(AwsPluginBase):
         return self.aws_client.ec2_client
 
     def query(self, instance_ids):
-        pprint(instance_ids)
         reservations = self.ec2_client.describe_instances(
             Filters=[
                 {
@@ -52,12 +49,10 @@ class AwsPluginInstanceName(AwsPluginBase):
                 for log_entry in log_entries
                 if (
                     log_entry.instance_id
-                    and not log_entry.instance_id.startswith("ecs:")
+                    and not log_entry.instance_id.startswith("ecs:")  # noqa: W503
                 )
             }
         )
-
-        pprint(instance_names)
 
         for log_entry in log_entries:
             setattr(log_entry, self.attr_name, instance_names.get(log_entry.client_ip))

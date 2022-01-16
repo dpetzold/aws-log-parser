@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from pprint import pprint
-
 from aws_log_parser.aws.plugin import AwsPluginBase
 
 

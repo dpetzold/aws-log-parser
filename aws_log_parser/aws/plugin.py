@@ -1,8 +1,6 @@
 import typing
 from dataclasses import dataclass, field
 
-from pprint import pprint
-
 from aws_log_parser.aws import AwsClient
 
 
@@ -23,16 +21,10 @@ class AwsPluginBase:
 
     def lookup(self, ips):
 
-        unknown = []
-
-        # xxx: set atrimatic
-        for ip in ips:
-            instance_id = self._cache.get(ip)
-            if not instance_id:
-                unknown.append(ip)
+        unknown = ips - self._cache.keys()
 
         if unknown:
-            self.query(unknown)
+            self.query(list(unknown))
 
         return self._cache
 
