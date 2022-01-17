@@ -54,7 +54,7 @@ def public_info(log_entries):
             {
                 "client_ip": log_entry.client_ip,
                 "hostname": log_entry.hostname,
-                "network": log_entry.network,
+                # "network": log_entry.network,
             }
             for log_entry in log_entries
         ]
@@ -63,14 +63,21 @@ def public_info(log_entries):
     pandas.set_option("display.max_columns", None)
 
     grouped = (
-        df.groupby(["client_ip", "network", "hostname"], as_index=False)
+        df.groupby(
+            [
+                "client_ip",
+                # "network",
+                "hostname",
+            ],
+            as_index=False,
+        )
         .size()
         .sort_values("size", ascending=False)
     ).rename(
         columns={
             "size": "Requests",
             "client_ip": "ClientIp",
-            "network": "Network",
+            # "network": "Network",
             "hostname": "Hostname",
         }
     )
@@ -154,9 +161,9 @@ def main():
             Path(__file__).parents[2] / "plugins",
         ],
         plugins=[
-            #            "instance_id:AwsPluginInstanceId",
-            #            "instance_name:AwsPluginInstanceName",
-            "radb:RadbPlugin",
+            # "instance_id:AwsPluginInstanceId",
+            # "instance_name:AwsPluginInstanceName",
+            # "radb:RadbPlugin",
             "dns_resolver:IpResolverPlugin",
         ],
     ).read_url(args.url)
