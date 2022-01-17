@@ -1,6 +1,5 @@
 import logging
 import socket
-import time
 import typing
 
 import concurrent.futures
@@ -8,6 +7,7 @@ import concurrent.futures
 from dataclasses import dataclass, field
 
 from aws_log_parser.plugin import AwsLogParserPlugin
+from aws_log_parser.util import time_ms
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class IpResolverPlugin(AwsLogParserPlugin):
     socket_timeout: float = 0.5
     requests: int = 0
     hostnames: typing.Dict[str, str] = field(default_factory=dict)
+    max_workers: int = 10
 
     def _query(self, ip_address):
         self.requests += 1
@@ -39,7 +40,9 @@ class IpResolverPlugin(AwsLogParserPlugin):
 
     def _lookup(self, client_ips):
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.max_workers
+        ) as executor:
             query_future = {
                 executor.submit(self._query, client_ip): client_ip
                 for client_ip in client_ips
@@ -71,10 +74,10 @@ class IpResolverPlugin(AwsLogParserPlugin):
             )
         )
 
-        start = time.time()
+        start = time_ms()
         self._lookup(unknown)
-        spent = time.time() - start
-        print(f"{spent:.2f}s avg={(spent/len(unknown))*100:.2f}")
+        spent = time_ms() - start
+        print(f"{spent/1000.0:.2f}s avg={spent/len(unknown):.2f}ms")
 
         for log_entry in log_entries:
             setattr(log_entry, self.attr_name, self.hostnames.get(log_entry.client_ip))
