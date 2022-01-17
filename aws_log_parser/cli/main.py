@@ -66,10 +66,16 @@ def public_info(log_entries):
         df.groupby(["client_ip", "network", "hostname"], as_index=False)
         .size()
         .sort_values("size", ascending=False)
+    ).rename(
+        columns={
+            "size": "Requests",
+            "client_ip": "ClientIp",
+            "network": "Network",
+            "hostname": "Hostname",
+        }
     )
 
-    if grouped:
-        print(grouped[:5])
+    print(grouped[:5])
 
 
 def _():
@@ -151,7 +157,7 @@ def main():
             #            "instance_id:AwsPluginInstanceId",
             #            "instance_name:AwsPluginInstanceName",
             "radb:RadbPlugin",
-            "resolver:IpResolverPlugin",
+            "dns_resolver:IpResolverPlugin",
         ],
     ).read_url(args.url)
 
