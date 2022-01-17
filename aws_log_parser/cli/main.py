@@ -1,12 +1,12 @@
 import argparse
 import logging
+import pandas
 
 from collections import Counter
 from pathlib import Path
 
 from rich.console import Console
 from rich.table import Table
-
 
 from ..interface import AwsLogParser
 from ..models import LogType
@@ -15,17 +15,15 @@ console = Console()
 logger = logging.getLogger(__name__)
 
 
-def count_hosts(entries):
+def aws_info(entries):
     counter = Counter()
 
-    """
-    entry.instance_name
-    if hasattr(entry, "instance_name") and entry.instance_name
-    else (entry.instance_id if entry.instance_id else entry.client_ip)
-    """
-
     for entry in entries:
-        counter[entry.network] += 1
+        counter[
+            entry.instance_name
+            if hasattr(entry, "instance_name") and entry.instance_name
+            else (entry.instance_id if entry.instance_id else entry.client_ip)
+        ] += 1
 
     table = Table(show_header=True)
     table.add_column("", justify="left")
@@ -47,6 +45,50 @@ def count_hosts(entries):
     table.add_row("", "Total", f"{total:,}", "")
 
     console.print(table)
+
+
+def public_info(log_entries):
+
+    df = pandas.DataFrame(
+        [
+            {
+                "client_ip": log_entry.client_ip,
+                "hostname": log_entry.hostname,
+                "network": log_entry.network,
+            }
+            for log_entry in log_entries
+        ]
+    )
+
+    grouped = df.groupby(by=["client_ip", "network", "hostname"], as_index=False)
+
+    print(grouped.size().sort_values(ascending=False))
+
+
+def _():
+    table = Table(show_header=True)
+    table.add_column("", justify="left")
+    table.add_column("ClientIp", justify="left")
+    table.add_column("Requests", justify="right")
+    table.add_column("Network", justify="right")
+    table.add_column("Hostname", justify="right")
+    # table.add_column("UserAgent", justify="right")
+    table.add_column("%", justify="right")
+
+    """
+    for
+        table.add_row(
+            str(i),
+            instance_name,
+            f"{count:,}",
+            f"({(count/total) * 100:.2f}%)",
+            end_section=i == len(client_ips),
+        )
+
+    table.add_row("", "Total", f"{total:,}", "")
+
+    console.print(table)
+    """
 
 
 def main():
@@ -102,7 +144,9 @@ def main():
             #            "instance_id:AwsPluginInstanceId",
             #            "instance_name:AwsPluginInstanceName",
             "radb:RadbPlugin",
+            "resolver:IpResolverPlugin",
         ],
     ).read_url(args.url)
 
-    count_hosts(log_entries)
+    # count_hosts(log_entries)
+    public_info(log_entries)

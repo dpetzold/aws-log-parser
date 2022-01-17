@@ -3,6 +3,7 @@ import typing
 import importlib
 import importlib.util
 import sys
+import gzip
 
 from dataclasses import dataclass, fields, field
 from pathlib import Path
@@ -82,6 +83,14 @@ class AwsLogParser:
             log_entries = self.run_plugin(plugin, log_entries)
         yield from log_entries
 
+    def yield_file(self, path):
+        with open(path) as log_data:
+            yield from log_data.readlines()
+
+    def yield_gzip(self, path):
+        with gzip.open(path, "rt") as f:
+            yield from f.readlines()
+
     def read_file(self, path):
         """
         Yield parsed log entries from the given file.
@@ -94,8 +103,10 @@ class AwsLogParser:
         """
         if self.verbose:
             print(f"Reading file://{path}")
-        with open(path) as log_data:
-            yield from self.parse(log_data.readlines())
+
+        yield_func = self.yield_gzip if path.suffix == ".gz" else self.yield_file
+
+        yield from self.parse(yield_func(path))
 
     def read_files(self, pathname):
         """
