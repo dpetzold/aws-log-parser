@@ -60,9 +60,16 @@ def public_info(log_entries):
         ]
     )
 
-    grouped = df.groupby(by=["client_ip", "network", "hostname"], as_index=False)
+    pandas.set_option("display.max_columns", None)
 
-    print(grouped.size().sort_values(ascending=False))
+    grouped = (
+        df.groupby(["client_ip", "network", "hostname"], as_index=False)
+        .size()
+        .sort_values("size", ascending=False)
+    )
+
+    if grouped:
+        print(grouped[:5])
 
 
 def _():
