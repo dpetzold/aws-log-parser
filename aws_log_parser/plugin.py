@@ -46,6 +46,7 @@ class AwsLogParserPlugin:
         print(
             " ".join(
                 [
+                    f"attr_name={self.attr_name}",
                     f"unknown={len(unknown):,}",
                     f"found={len(values)-len(unknown)}",
                     f"total={len(values):,}",

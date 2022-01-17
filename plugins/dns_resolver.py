@@ -18,7 +18,7 @@ class IpResolverPlugin(AwsLogParserPlugin):
     socket_timeout: float = 0.5
     requests: int = 0
 
-    def _query(self, ip_address):
+    def query(self, ip_address):
         self.requests += 1
         socket.setdefaulttimeout(self.socket_timeout)
         try:
@@ -27,10 +27,6 @@ class IpResolverPlugin(AwsLogParserPlugin):
             logger.debug(f"Unable to resolve {ip_address}", exc_info=True)
         else:
             return hostname
-
-    def query(self, ip_addresses):
-        for ip_address in ip_addresses:
-            self._query(ip_address)
 
     def augment(self, log_entries):
 
