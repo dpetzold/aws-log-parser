@@ -86,7 +86,7 @@ class AwsLogParser:
 
         for plugin in self.plugins_loaded:
             if hasattr(plugin, "requests"):
-                print(f"{plugin.requests} requests")
+                print(f"{plugin.requests:,} requests")
 
     def yield_file(self, path):
         with open(path) as log_data:
