@@ -53,8 +53,8 @@ def public_info(log_entries):
         [
             {
                 "client_ip": log_entry.client_ip,
-                "hostname": log_entry.hostname,
-                # "network": log_entry.network,
+                # "hostname": log_entry.hostname,
+                "network": log_entry.network,
             }
             for log_entry in log_entries
         ]
@@ -66,8 +66,8 @@ def public_info(log_entries):
         df.groupby(
             [
                 "client_ip",
-                # "network",
-                "hostname",
+                "network",
+                # "hostname",
             ],
             as_index=False,
         )
@@ -77,8 +77,8 @@ def public_info(log_entries):
         columns={
             "size": "Requests",
             "client_ip": "ClientIp",
-            # "network": "Network",
-            "hostname": "Hostname",
+            "network": "Network",
+            # "hostname": "Hostname",
         }
     )
 
@@ -163,8 +163,8 @@ def main():
         plugins=[
             # "instance_id:AwsPluginInstanceId",
             # "instance_name:AwsPluginInstanceName",
-            # "radb:RadbPlugin",
-            "dns_resolver:IpResolverPlugin",
+            "radb:RadbPlugin",
+            # "dns_resolver:IpResolverPlugin",
         ],
     ).read_url(args.url)
 

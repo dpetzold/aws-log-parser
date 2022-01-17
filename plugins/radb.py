@@ -30,7 +30,7 @@ class RadbPlugin(AwsLogParserPlugin):
             d[s[0].strip()] = s[1].strip()
         return d
 
-    def _query(self, ip_address):
+    def query(self, ip_address):
         try:
             response = whois.NICClient().whois(
                 ip_address,
@@ -42,14 +42,10 @@ class RadbPlugin(AwsLogParserPlugin):
             socket.herror,
             socket.timeout,
             ConnectionResetError,
-        ) as exc:
-            logger.error(f"{ip_address} lookup failed: {str(exc)}")
+        ):
+            logger.debug(f"{ip_address} lookup failed", exc_info=True)
         else:
-            self._cache.update({ip_address: self.parse_response(response).get("descr")})
-
-    def query(self, ip_addresses):
-        for ip_address in ip_addresses:
-            self._query(ip_address)
+            return self.parse_response(response).get("descr")
 
     def augment(self, log_entries):
 
