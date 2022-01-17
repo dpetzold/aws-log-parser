@@ -17,7 +17,8 @@ class RadbPlugin(AwsLogParserPlugin):
     Get the public network name from RADB.
     """
 
-    attr_name: str = "network"
+    consumed_attr: str = "client_ip"
+    produced_attr: str = "network"
 
     def parse_response(self, response):
         d = {}
@@ -49,8 +50,12 @@ class RadbPlugin(AwsLogParserPlugin):
 
     def augment(self, log_entries):
 
-        networks = self.lookup({log_entry.client_ip for log_entry in log_entries})
+        print(f"{self.produced_attr} augmenting ({len(self._results)})")
 
-        for log_entry in log_entries:
-            setattr(log_entry, self.attr_name, networks.get(log_entry.client_ip))
+        for i, log_entry in enumerate(log_entries):
+            setattr(
+                log_entry, self.produced_attr, self._results.get(log_entry.client_ip)
+            )
             yield log_entry
+
+        print(f"{self.produced_attr} augmenting completed ({i})")

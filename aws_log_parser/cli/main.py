@@ -4,6 +4,7 @@ import pandas
 
 from collections import Counter
 from pathlib import Path
+from pprint import pprint
 
 from rich.console import Console
 from rich.table import Table

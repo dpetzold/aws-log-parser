@@ -16,21 +16,20 @@ class AwsLogParserPlugin:
     """
 
     batch_size: int = 1024 * 8
-    max_workers: int = 10
+    max_workers: typing.Optional[int] = None
 
+    _items: typing.Set[str] = field(default_factory=set)
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def async_query(self, values):
 
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=self.max_workers
+            # max_workers=self.max_workers
         ) as executor:
-            query_future = {
-                executor.submit(self.query, value): value for value in values
-            }
+            futures = {executor.submit(self.query, value): value for value in values}
 
-            for future in concurrent.futures.as_completed(query_future):
-                value = query_future[future]
+            for future in concurrent.futures.as_completed(futures):
+                value = futures[future]
                 try:
                     result = future.result()
                 except Exception:
@@ -39,28 +38,24 @@ class AwsLogParserPlugin:
                     if value:
                         self._results[value] = result
 
-    def lookup(self, values):
+    def init(self, log_entries):
+        print(f"{self.produced_attr}: init ({len(self._items)})")
+        _log_entries = []
+        for log_entry in log_entries:
+            self._items.add(getattr(log_entry, self.consumed_attr))
+            _log_entries.append(log_entry)
+        print(f"{self.produced_attr}: init completed ({len(self._items)})")
+        return _log_entries
 
-        unknown = values - self._results.keys()
-
-        print(
-            " ".join(
-                [
-                    f"attr_name={self.attr_name}",
-                    f"unknown={len(unknown):,}",
-                    f"found={len(values)-len(unknown)}",
-                    f"total={len(values):,}",
-                ]
-            )
-        )
+    def populate_table(self):
+        print(f"{self.produced_attr}: populating ({len(self._items)})")
 
         start = time_ms()
-        if unknown:
-            self.async_query(list(unknown))
+        self.async_query(self._items)
         spent = time_ms() - start
-        print(f"{spent/1000.0:.2f}s avg={spent/len(unknown):.2f}ms")
-
-        return self._results
+        print(
+            f"{self.produced_attr}: {spent/1000.0:.2f}s avg={spent/len(self._items):.2f}ms"
+        )
 
     def query(self, _):
         raise NotImplementedError

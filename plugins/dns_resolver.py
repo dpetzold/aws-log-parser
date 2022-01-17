@@ -14,7 +14,8 @@ class IpResolverPlugin(AwsLogParserPlugin):
     Resolve the hostname from the client ip address.
     """
 
-    attr_name: str = "hostname"
+    consumed_attr: str = "client_ip"
+    produced_attr: str = "hostname"
     socket_timeout: float = 0.5
     requests: int = 0
 
@@ -30,10 +31,13 @@ class IpResolverPlugin(AwsLogParserPlugin):
 
     def augment(self, log_entries):
 
-        client_ips = {log_entry.client_ip for log_entry in log_entries}
+        print(f"{self.produced_attr} augmenting")
 
-        hostnames = self.lookup(client_ips)
-
-        for log_entry in log_entries:
-            setattr(log_entry, self.attr_name, hostnames.get(log_entry.client_ip))
+        i = 0
+        for i, log_entry in enumerate(log_entries):
+            setattr(
+                log_entry, self.produced_attr, self._results.get(log_entry.client_ip)
+            )
             yield log_entry
+
+        print(f"{self.produced_attr} completed ({i})")

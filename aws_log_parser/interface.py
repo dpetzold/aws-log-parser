@@ -1,9 +1,11 @@
+import concurrent.futures
 import csv
-import typing
+import gzip
 import importlib
 import importlib.util
+import logging
 import sys
-import gzip
+import typing
 
 from dataclasses import dataclass, fields, field
 from pathlib import Path
@@ -16,6 +18,9 @@ from .models import (
 from .util import batcher
 
 from .parser import to_python
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -73,16 +78,30 @@ class AwsLogParser:
             kwargs = {"aws_cliend": self.aws_client}
         return getattr(module, plugin_classs)(**kwargs)
 
-    def run_plugin(self, plugin, log_entries):
-        for batch in batcher(log_entries, plugin.batch_size):
-            yield from plugin.augment(batch)
+    def run_plugins(self, log_entries):
+        for plugin in self.plugins_loaded:
+            log_entries = plugin.init(log_entries)
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(self.plugins_loaded),
+        ) as executor:
+
+            futures = [
+                executor.submit(plugin.populate_table) for plugin in self.plugins_loaded
+            ]
+
+            concurrent.futures.wait(futures)
+
+            for plugin in self.plugins_loaded:
+                print(f"Augmenting {plugin.produced_attr}")
+                log_entries = plugin.augment(log_entries)
+
+            yield from log_entries
 
     def parse(self, content):
         log_entries = self._parse(content)
-        for plugin in self.plugins_loaded:
-            log_entries = self.run_plugin(plugin, log_entries)
 
-        yield from log_entries
+        yield from self.run_plugins(log_entries)
 
         for plugin in self.plugins_loaded:
             if hasattr(plugin, "requests"):
