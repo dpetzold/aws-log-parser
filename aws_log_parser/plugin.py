@@ -16,16 +16,17 @@ class AwsLogParserPlugin:
     batch_size: int = 1024 * 8
     max_workers: typing.Optional[int] = None
 
+    # Overriden
     produced_attr: typing.Optional[str] = None
     consumed_attr: typing.Optional[str] = None
 
-    _items: typing.Set[str] = field(default_factory=set)
+    # Internal
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def run(self, values):
 
         with concurrent.futures.ThreadPoolExecutor(
-            # max_workers=self.max_workers
+            max_workers=self.max_workers
         ) as executor:
             futures = {executor.submit(self.query, value): value for value in values}
 

@@ -99,6 +99,9 @@ class AwsLogParser:
         return _log_entries
 
     def run_plugins(self, log_entries):
+        """
+        Run the plugins concurrently.
+        """
 
         log_entries = self.init_plugins(log_entries)
 
