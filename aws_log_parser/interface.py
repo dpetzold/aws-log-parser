@@ -86,6 +86,8 @@ class AwsLogParser:
     def init_plugins(self, log_entries):
         required_attrs = {plugin.consumed_attr for plugin in self.plugins_loaded}
 
+        # XXX: is there a way to not copy here
+
         _log_entries = []
         for log_entry in log_entries:
             for required_attr in required_attrs:
@@ -106,7 +108,7 @@ class AwsLogParser:
 
             futures = [
                 executor.submit(
-                    plugin.run, self._plugin_attr_values[plugin.consumed_attr]
+                    plugin.run, self._plugin_attr_values[plugin.consumed_attr]  # type: ignore
                 )
                 for plugin in self.plugins_loaded
             ]
@@ -115,7 +117,7 @@ class AwsLogParser:
 
         for log_entry in log_entries:
             for plugin in self.plugins_loaded:
-                log_entry = plugin.augment(log_entry)
+                plugin.augment(log_entry)
 
         yield from log_entries
 

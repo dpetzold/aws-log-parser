@@ -16,6 +16,9 @@ class AwsLogParserPlugin:
     batch_size: int = 1024 * 8
     max_workers: typing.Optional[int] = None
 
+    produced_attr: typing.Optional[str] = None
+    consumed_attr: typing.Optional[str] = None
+
     _items: typing.Set[str] = field(default_factory=set)
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
@@ -39,5 +42,10 @@ class AwsLogParserPlugin:
     def query(self, _):
         raise NotImplementedError
 
-    def augment(self, _):
-        raise NotImplementedError
+    def augment(self, log_entry):
+        if self.consumed_attr and self.produced_attr:
+            setattr(
+                log_entry,
+                self.produced_attr,
+                self._results.get(getattr(log_entry, self.consumed_attr)),
+            )

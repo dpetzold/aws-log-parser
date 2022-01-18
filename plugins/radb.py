@@ -49,7 +49,3 @@ class RadbPlugin(AwsLogParserPlugin):
             logger.debug(f"{ip_address} lookup failed", exc_info=True)
         else:
             return self.parse_response(response).get("descr")
-
-    def augment(self, log_entry):
-
-        setattr(log_entry, self.produced_attr, self._results.get(log_entry.client_ip))

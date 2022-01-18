@@ -28,8 +28,3 @@ class IpResolverPlugin(AwsLogParserPlugin):
             logger.debug(f"Unable to resolve {ip_address}", exc_info=True)
         else:
             return hostname
-
-    def augment(self, log_entry):
-
-        setattr(log_entry, self.produced_attr, self._results.get(log_entry.client_ip))
-        return log_entry
