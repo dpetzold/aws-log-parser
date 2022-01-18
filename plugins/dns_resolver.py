@@ -29,15 +29,7 @@ class IpResolverPlugin(AwsLogParserPlugin):
         else:
             return hostname
 
-    def augment(self, log_entries):
+    def augment(self, log_entry):
 
-        print(f"{self.produced_attr} augmenting")
-
-        i = 0
-        for i, log_entry in enumerate(log_entries):
-            setattr(
-                log_entry, self.produced_attr, self._results.get(log_entry.client_ip)
-            )
-            yield log_entry
-
-        print(f"{self.produced_attr} completed ({i})")
+        setattr(log_entry, self.produced_attr, self._results.get(log_entry.client_ip))
+        return log_entry

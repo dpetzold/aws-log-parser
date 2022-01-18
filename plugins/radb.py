@@ -19,6 +19,7 @@ class RadbPlugin(AwsLogParserPlugin):
 
     consumed_attr: str = "client_ip"
     produced_attr: str = "network"
+    requests: int = 0
 
     def parse_response(self, response):
         d = {}
@@ -32,6 +33,7 @@ class RadbPlugin(AwsLogParserPlugin):
         return d
 
     def query(self, ip_address):
+        self.requests += 1
         try:
             response = whois.NICClient().whois(
                 ip_address,
@@ -48,14 +50,6 @@ class RadbPlugin(AwsLogParserPlugin):
         else:
             return self.parse_response(response).get("descr")
 
-    def augment(self, log_entries):
+    def augment(self, log_entry):
 
-        print(f"{self.produced_attr} augmenting ({len(self._results)})")
-
-        for i, log_entry in enumerate(log_entries):
-            setattr(
-                log_entry, self.produced_attr, self._results.get(log_entry.client_ip)
-            )
-            yield log_entry
-
-        print(f"{self.produced_attr} augmenting completed ({i})")
+        setattr(log_entry, self.produced_attr, self._results.get(log_entry.client_ip))

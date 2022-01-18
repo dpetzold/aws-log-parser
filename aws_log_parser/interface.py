@@ -7,6 +7,7 @@ import logging
 import sys
 import typing
 
+from collections import defaultdict
 from dataclasses import dataclass, fields, field
 from pathlib import Path
 from urllib.parse import urlparse
@@ -15,7 +16,6 @@ from .aws import AwsClient
 from .models import (
     LogFormat,
 )
-from .util import batcher
 
 from .parser import to_python
 
@@ -36,6 +36,11 @@ class AwsLogParser:
 
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
     plugins: typing.List[str] = field(default_factory=list)
+
+    # Internal
+    _plugin_attr_values: typing.Dict[str, typing.List[str]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
     def __post_init__(self):
         self.aws_client = AwsClient(
@@ -78,25 +83,41 @@ class AwsLogParser:
             kwargs = {"aws_cliend": self.aws_client}
         return getattr(module, plugin_classs)(**kwargs)
 
+    def init_plugins(self, log_entries):
+        required_attrs = {plugin.consumed_attr for plugin in self.plugins_loaded}
+
+        _log_entries = []
+        for log_entry in log_entries:
+            for required_attr in required_attrs:
+                self._plugin_attr_values[required_attr].append(
+                    getattr(log_entry, required_attr)
+                )
+            _log_entries.append(log_entry)
+
+        return _log_entries
+
     def run_plugins(self, log_entries):
-        for plugin in self.plugins_loaded:
-            log_entries = plugin.init(log_entries)
+
+        log_entries = self.init_plugins(log_entries)
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=len(self.plugins_loaded),
         ) as executor:
 
             futures = [
-                executor.submit(plugin.populate_table) for plugin in self.plugins_loaded
+                executor.submit(
+                    plugin.run, self._plugin_attr_values[plugin.consumed_attr]
+                )
+                for plugin in self.plugins_loaded
             ]
 
             concurrent.futures.wait(futures)
 
+        for log_entry in log_entries:
             for plugin in self.plugins_loaded:
-                print(f"Augmenting {plugin.produced_attr}")
-                log_entries = plugin.augment(log_entries)
+                log_entry = plugin.augment(log_entry)
 
-            yield from log_entries
+        yield from log_entries
 
     def parse(self, content):
         log_entries = self._parse(content)
@@ -105,7 +126,7 @@ class AwsLogParser:
 
         for plugin in self.plugins_loaded:
             if hasattr(plugin, "requests"):
-                print(f"{plugin.requests:,} requests")
+                print(f"{plugin.produced_attr}: {plugin.requests:,} requests")
 
     def yield_file(self, path):
         with open(path) as log_data:

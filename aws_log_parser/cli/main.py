@@ -50,6 +50,8 @@ def aws_info(entries):
 
 def public_info(log_entries):
 
+    # print(f"public_info: {len(list(log_entries))}")
+
     df = pandas.DataFrame(
         [
             {
