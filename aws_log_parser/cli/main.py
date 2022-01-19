@@ -52,6 +52,7 @@ def public_info(log_entries):
 
     # print(f"public_info: {len(list(log_entries))}")
 
+    """
     df = pandas.DataFrame(
         [
             {
@@ -62,6 +63,9 @@ def public_info(log_entries):
             for log_entry in log_entries
         ]
     )
+    """
+
+    df = pandas.DataFrame(log_entries)
 
     pandas.set_option("display.max_columns", None)
 
@@ -71,6 +75,7 @@ def public_info(log_entries):
                 "client_ip",
                 "network",
                 "hostname",
+                "user_agent_model.browser.family",
             ],
             as_index=False,
         )
@@ -175,6 +180,7 @@ def main():
             # "instance_name:AwsPluginInstanceName",
             "dns_resolver:IpResolverPlugin",
             "radb:RadbPlugin",
+            "user_agent:UserAgentPlugin",
         ],
     ).read_url(args.url)
 
