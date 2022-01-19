@@ -52,20 +52,24 @@ def public_info(log_entries):
 
     # print(f"public_info: {len(list(log_entries))}")
 
-    """
     df = pandas.DataFrame(
         [
             {
                 "client_ip": log_entry.client_ip,
-                "hostname": log_entry.hostname,
-                "network": log_entry.network,
+                # "hostname": log_entry.hostname,
+                # "network": log_entry.network,
+                "browser_family": log_entry.user_agent_obj.browser.family,
             }
             for log_entry in log_entries
         ]
     )
-    """
 
-    df = pandas.DataFrame(log_entries)
+    if False:
+        from pprint import pprint
+
+        pprint(next(log_entries))
+
+        df = pandas.DataFrame(log_entries)
 
     pandas.set_option("display.max_columns", None)
 
@@ -73,9 +77,9 @@ def public_info(log_entries):
         df.groupby(
             [
                 "client_ip",
-                "network",
-                "hostname",
-                "user_agent_model.browser.family",
+                # "network",
+                # "hostname",
+                "browser_family",
             ],
             as_index=False,
         )
@@ -85,8 +89,8 @@ def public_info(log_entries):
         columns={
             "size": "Requests",
             "client_ip": "ClientIp",
-            "network": "Network",
-            "hostname": "Hostname",
+            # "network": "Network",
+            # "hostname": "Hostname",
         }
     )
 
@@ -178,8 +182,8 @@ def main():
         plugins=[
             # "instance_id:AwsPluginInstanceId",
             # "instance_name:AwsPluginInstanceName",
-            "dns_resolver:IpResolverPlugin",
-            "radb:RadbPlugin",
+            # "dns_resolver:IpResolverPlugin",
+            # "radb:RadbPlugin",
             "user_agent:UserAgentPlugin",
         ],
     ).read_url(args.url)
