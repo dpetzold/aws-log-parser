@@ -73,6 +73,7 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
+@dataclass
 class LogEntry:
     pass
 
@@ -94,13 +95,6 @@ class ClassicLoadBalancerLogEntry(LogEntry):
     user_agent: str
     ssl_cipher: str
     ssl_protocol: str
-
-    # Plugins
-    instance_id: typing.Optional[str] = None
-    network: typing.Optional[str] = None
-    hostname: typing.Optional[str] = None
-    instance_id: typing.Optional[str] = None
-    instance_name: typing.Optional[str] = None
 
     @property
     def client_ip(self):
@@ -136,12 +130,6 @@ class LoadBalancerLogEntry(LogEntry):
     redirect_url: typing.Optional[str]
     error_reason: typing.Optional[LoadBalancerErrorReason]
 
-    # Plugins
-    network: typing.Optional[str] = None
-    hostname: typing.Optional[str] = None
-    instance_id: typing.Optional[str] = None
-    instance_name: typing.Optional[str] = None
-
 
 @dataclass
 class CloudFrontWebDistributionLogEntry(LogEntry):
@@ -171,12 +159,6 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     protocol_version: str
     fle_encrypted_fields: str = ""
 
-    # Plugins
-    network: typing.Optional[str] = None
-    hostname: typing.Optional[str] = None
-    instance_id: typing.Optional[str] = None
-    instance_name: typing.Optional[str] = None
-
     @property
     def timestamp(self):
         return datetime.datetime.fromisoformat(
@@ -199,12 +181,6 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     referrer: str
     page_url: str
     user_agent: str
-
-    # Plugins
-    network: typing.Optional[str] = None
-    hostname: typing.Optional[str] = None
-    instance_id: typing.Optional[str] = None
-    instance_name: typing.Optional[str] = None
 
 
 @dataclass

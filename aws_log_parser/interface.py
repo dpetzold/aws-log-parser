@@ -1,5 +1,6 @@
 import concurrent.futures
 import csv
+import dataclasses
 import gzip
 import importlib
 import importlib.util
@@ -8,7 +9,7 @@ import sys
 import typing
 
 from collections import defaultdict
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, fields, field, make_dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -42,6 +43,8 @@ class AwsLogParser:
         default_factory=lambda: defaultdict(list)
     )
 
+    model: typing.Optional[typing.Type] = None
+
     def __post_init__(self):
         self.aws_client = AwsClient(
             region=self.region, profile=self.profile, verbose=self.verbose
@@ -55,11 +58,27 @@ class AwsLogParser:
             for plugin in self.plugins
         ]
 
+        if self.plugins_loaded:
+            # Create a new dataclass with the plugin fields
+            new_fields = []
+            for plugin in self.plugins_loaded:
+                for _field in dataclasses.fields(plugin):
+                    if _field.name == "produced_attr":
+                        new_fields.append(
+                            (_field.default, _field.type, field(init=False))
+                        )
+            self.model = make_dataclass(
+                "LogEntry", fields=new_fields, bases=(self.log_type.model,)
+            )
+
+        else:
+            self.model = self.log_type.model
+
     def _parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
-                yield self.log_type.model(  # type: ignore
+                yield self.model(  # type: ignore
                     *[
                         to_python(value, field)
                         for value, field in zip(row, model_fields)
