@@ -65,11 +65,21 @@ class AwsLogParser:
                 for _field in dataclasses.fields(plugin):
                     if _field.name == "produced_attr":
                         new_fields.append(
-                            (_field.default, _field.type, field(init=False))
+                            (
+                                _field.default,
+                                _field.metadata["type"]
+                                if _field.metadata
+                                else _field.type,
+                                field(init=False),
+                            )
                         )
             self.model = make_dataclass(
                 "LogEntry", fields=new_fields, bases=(self.log_type.model,)
             )
+
+            from pprint import pprint
+
+            pprint(dataclasses.fields(self.model))
 
         else:
             self.model = self.log_type.model

@@ -1,6 +1,6 @@
 import logging
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from aws_log_parser.plugin import AwsLogParserPlugin
 
@@ -18,7 +18,7 @@ class UserAgentPlugin(AwsLogParserPlugin):
     """
 
     consumed_attr: str = "user_agent"
-    produced_attr: UserAgent = "user_agent_obj"
+    produced_attr: str = field(default="user_agent_obj", metadata={"type": UserAgent})
 
     def query(self, user_agent):
         return parse(user_agent)

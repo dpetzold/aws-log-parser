@@ -58,6 +58,7 @@ def public_info(log_entries):
                 "client_ip": log_entry.client_ip,
                 # "hostname": log_entry.hostname,
                 # "network": log_entry.network,
+                "os_family": log_entry.user_agent_obj.os.family,
                 "browser_family": log_entry.user_agent_obj.browser.family,
             }
             for log_entry in log_entries
@@ -80,6 +81,7 @@ def public_info(log_entries):
                 # "network",
                 # "hostname",
                 "browser_family",
+                "os_family",
             ],
             as_index=False,
         )
