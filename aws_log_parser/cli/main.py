@@ -4,9 +4,9 @@ import pandas
 
 from collections import Counter
 from pathlib import Path
-from pprint import pprint
 
 from rich.console import Console
+from rich.logging import RichHandler
 from rich.table import Table
 
 from ..interface import AwsLogParser
@@ -154,6 +154,13 @@ def main():
     )
 
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level="DEBUG" if args.verbose else "INFO",
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler()],
+    )
 
     log_entries = AwsLogParser(
         log_type=args.log_type,

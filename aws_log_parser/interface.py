@@ -59,7 +59,7 @@ class AwsLogParser:
         ]
 
         if self.plugins_loaded:
-            # Create a new dataclass with the plugin fields
+            # Create a new dataclass with the plugin fields.
             new_fields = []
             for plugin in self.plugins_loaded:
                 for _field in dataclasses.fields(plugin):
