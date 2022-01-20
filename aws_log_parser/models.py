@@ -1,4 +1,5 @@
 import datetime
+import pprint
 import typing
 
 from enum import (
@@ -75,7 +76,8 @@ class LoadBalancerErrorReason(Enum):
 
 @dataclass
 class LogEntry:
-    pass
+    def __str__(self):
+        return pprint.pformat(self)
 
 
 @dataclass

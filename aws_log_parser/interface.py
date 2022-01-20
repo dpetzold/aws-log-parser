@@ -178,6 +178,7 @@ class AwsLogParser:
                 attrs = {
                     getattr(log_entry, plugin.consumed_attr)
                     for log_entry in log_entries
+                    if getattr(log_entry, plugin.consumed_attr)
                 }
                 for batch in batcher(attrs, plugin.batch_size):
                     plugin.run(batch)
