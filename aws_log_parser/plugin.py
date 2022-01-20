@@ -4,6 +4,8 @@ import typing
 
 from dataclasses import dataclass, field
 
+from .util import batcher
+
 logger = logging.getLogger(__name__)
 
 
@@ -13,7 +15,7 @@ class AwsLogParserPlugin:
     Resolve the instance_id from its private ip address.
     """
 
-    batch_size: int = 1024 * 8
+    batch_size: int = 1
     max_workers: typing.Optional[int] = None
 
     # Overriden
@@ -28,17 +30,16 @@ class AwsLogParserPlugin:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.max_workers
         ) as executor:
-            futures = {executor.submit(self.query, value): value for value in values}
+
+            futures = {
+                executor.submit(self.query, batch)
+                for batch in batcher(values, self.batch_size)
+            }
 
             for future in concurrent.futures.as_completed(futures):
-                value = futures[future]
-                try:
-                    result = future.result()
-                except Exception:
-                    logger.error(f"{value} generated an exception", exc_info=True)
-                else:
-                    if value:
-                        self._results[value] = result
+                result = future.result()
+                if result:
+                    self._results.update(result)
 
     def query(self, _):
         raise NotImplementedError

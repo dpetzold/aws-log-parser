@@ -16,6 +16,10 @@ console = Console()
 logger = logging.getLogger(__name__)
 
 
+for name in ["boto", "urllib3", "s3transfer", "boto3", "botocore", "nose"]:
+    logging.getLogger(name).setLevel(logging.CRITICAL)
+
+
 def aws_info(entries):
     counter = Counter()
 
@@ -140,6 +144,20 @@ def main():
     )
 
     parser.add_argument(
+        "--log-level",
+        choices=[
+            "CRITICAL",
+            "ERROR",
+            "WARNING",
+            "INFO",
+            "DEBUG",
+        ],
+        default="INFO",
+        help="The the logging level.",
+    )
+
+    parser.add_argument(
+        "-v",
         "--verbose",
         action="store_true",
         default=False,
@@ -167,7 +185,7 @@ def main():
     args = parser.parse_args()
 
     logging.basicConfig(
-        level="DEBUG" if args.verbose else "INFO",
+        level=args.log_level,
         format="%(message)s",
         datefmt="[%X]",
         handlers=[RichHandler()],
@@ -182,13 +200,13 @@ def main():
             Path(__file__).parents[2] / "plugins",
         ],
         plugins=[
-            # "instance_id:AwsPluginInstanceId",
-            # "instance_name:AwsPluginInstanceName",
+            "instance_id:AwsPluginInstanceId",
+            "instance_name:AwsPluginInstanceName",
             # "dns_resolver:IpResolverPlugin",
             # "radb:RadbPlugin",
-            "user_agent:UserAgentPlugin",
+            # "user_agent:UserAgentPlugin",
         ],
     ).read_url(args.url)
 
-    # count_hosts(log_entries)
-    public_info(log_entries)
+    aws_info(log_entries)
+    # public_info(log_entries)

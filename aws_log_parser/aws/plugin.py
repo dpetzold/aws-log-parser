@@ -1,14 +1,12 @@
-import typing
-
 from dataclasses import dataclass
 
 from .client import AwsClient
 from ..plugin import AwsLogParserPlugin
 
 
-@dataclass
+@dataclass(kw_only=True)
 class AwsPluginBase(AwsLogParserPlugin):
-    aws_client: typing.Optional[AwsClient] = None
+    aws_client: AwsClient
 
     @property
     def ec2_client(self):

@@ -1,15 +1,22 @@
+import logging
 from dataclasses import dataclass
 
 from aws_log_parser.aws.plugin import AwsPluginBase
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AwsPluginInstanceName(AwsPluginBase):
 
-    attr_name: str = "instance_name"
+    consumed_attr: str = "instance_id"
+    produced_attr: str = "instance_name"
+    batch_size: int = 128
 
     def query(self, instance_ids):
-        reservations = self.ec2_client.describe_instances(
+        assert self.aws_client
+        logger.info(len(instance_ids))
+        reservations = self.aws_client.ec2_client.describe_instances(
             Filters=[
                 {
                     "Name": "instance-id",
@@ -33,21 +40,22 @@ class AwsPluginInstanceName(AwsPluginBase):
 
             name = self.aws_client.get_tag(instance["Tags"], "Name")
 
-            self._cache.update({private_ip: name for private_ip in private_ips})
+            return {private_ip: name for private_ip in private_ips}
+        return {}
 
-    def augment(self, log_entries):
+    def augment(self, log_entry):
 
-        instance_names = self.lookup(
-            {
+        setattr(
+            log_entry,
+            self.produced_attr,
+            (
                 log_entry.instance_id
-                for log_entry in log_entries
-                if (
+                if log_entry.instance_id and log_entry.instance_id.startswith("ecs:")
+                else self._results.get(
+                    log_entry.client_ip,
                     log_entry.instance_id
-                    and not log_entry.instance_id.startswith("ecs:")  # noqa: W503
+                    if log_entry.instance_id
+                    else log_entry.client_ip,
                 )
-            }
+            ),
         )
-
-        for log_entry in log_entries:
-            setattr(log_entry, self.attr_name, instance_names.get(log_entry.client_ip))
-            yield log_entry

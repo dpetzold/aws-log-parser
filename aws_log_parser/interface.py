@@ -13,7 +13,10 @@ from dataclasses import dataclass, fields, field, make_dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
+from pprint import pprint  # noqa
+
 from .aws import AwsClient
+from .util import batcher
 from .models import (
     LogFormat,
 )
@@ -35,8 +38,12 @@ class AwsLogParser:
     file_suffix: str = ".log"
     verbose: bool = False
 
+    # Plugin
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
     plugins: typing.List[str] = field(default_factory=list)
+
+    plugin_consumed_attrs: typing.Set[str] = field(default_factory=set)
+    plugin_produced_attrs: typing.Set[str] = field(default_factory=set)
 
     # Internal
     _plugin_attr_values: typing.Dict[str, typing.List[str]] = field(
@@ -77,12 +84,16 @@ class AwsLogParser:
                 "LogEntry", fields=new_fields, bases=(self.log_type.model,)
             )
 
-            from pprint import pprint
-
-            pprint(dataclasses.fields(self.model))
-
         else:
             self.model = self.log_type.model
+
+        self.plugin_consumed_attrs = {
+            plugin.consumed_attr for plugin in self.plugins_loaded
+        }
+
+        self.plugin_produced_attrs = {
+            plugin.produced_attr for plugin in self.plugins_loaded
+        }
 
     def _parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
@@ -107,22 +118,28 @@ class AwsLogParser:
         sys.modules[plugin_module] = module
         spec.loader.exec_module(module)  # type: ignore
 
-        kwargs = {}
-        if hasattr(plugin, "aws_client") and plugin.aws_client is None:
-            kwargs = {"aws_cliend": self.aws_client}
-        return getattr(module, plugin_classs)(**kwargs)
+        plugin_cls = getattr(module, plugin_classs)
+
+        requires_aws_client = False
+        for _field in dataclasses.fields(plugin_cls):
+            if _field.name == "aws_client":
+                requires_aws_client = True
+                break
+
+        kwargs = {"aws_client": self.aws_client} if requires_aws_client else {}
+        return plugin_cls(**kwargs)
 
     def init_plugins(self, log_entries):
-        required_attrs = {plugin.consumed_attr for plugin in self.plugins_loaded}
 
         # XXX: is there a way to not copy here
 
         _log_entries = []
         for log_entry in log_entries:
-            for required_attr in required_attrs:
-                self._plugin_attr_values[required_attr].append(
-                    getattr(log_entry, required_attr)
-                )
+            for consumed_attr in self.plugin_consumed_attrs:
+                if consumed_attr not in self.plugin_produced_attrs:
+                    self._plugin_attr_values[consumed_attr].append(
+                        getattr(log_entry, consumed_attr)
+                    )
             _log_entries.append(log_entry)
 
         return _log_entries
@@ -134,22 +151,39 @@ class AwsLogParser:
 
         log_entries = self.init_plugins(log_entries)
 
+        produced_attrs = {plugin.produced_attr for plugin in self.plugins_loaded}
+
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=len(self.plugins_loaded),
         ) as executor:
 
-            futures = [
+            futures = {
                 executor.submit(
                     plugin.run, self._plugin_attr_values[plugin.consumed_attr]  # type: ignore
                 )
                 for plugin in self.plugins_loaded
-            ]
+                if plugin.consumed_attr not in produced_attrs
+            }
 
             concurrent.futures.wait(futures)
 
         for log_entry in log_entries:
             for plugin in self.plugins_loaded:
-                plugin.augment(log_entry)
+                if plugin.consumed_attr not in produced_attrs:
+                    plugin.augment(log_entry)
+
+        # Run plugins with dependant fields.
+        for plugin in self.plugins_loaded:
+            if plugin.consumed_attr in produced_attrs:
+                for batch in batcher(log_entries, plugin.batch_size):
+                    plugin.run(
+                        getattr(log_entry, plugin.consumed_attr) for log_entry in batch
+                    )
+
+        for log_entry in log_entries:
+            for plugin in self.plugins_loaded:
+                if plugin.consumed_attr in produced_attrs:
+                    plugin.augment(log_entry)
 
         yield from log_entries
 
