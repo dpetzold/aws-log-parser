@@ -46,8 +46,8 @@ class AwsLogParser:
     plugin_produced_attrs: typing.Set[str] = field(default_factory=set)
 
     # Internal
-    _plugin_attr_values: typing.Dict[str, typing.List[str]] = field(
-        default_factory=lambda: defaultdict(list)
+    _plugin_attr_values: typing.Dict[str, typing.Set[str]] = field(
+        default_factory=lambda: defaultdict(set)
     )
 
     model: typing.Optional[typing.Type] = None
@@ -137,7 +137,7 @@ class AwsLogParser:
         for log_entry in log_entries:
             for consumed_attr in self.plugin_consumed_attrs:
                 if consumed_attr not in self.plugin_produced_attrs:
-                    self._plugin_attr_values[consumed_attr].append(
+                    self._plugin_attr_values[consumed_attr].add(
                         getattr(log_entry, consumed_attr)
                     )
             _log_entries.append(log_entry)
@@ -175,10 +175,12 @@ class AwsLogParser:
         # Run plugins with dependant fields.
         for plugin in self.plugins_loaded:
             if plugin.consumed_attr in produced_attrs:
-                for batch in batcher(log_entries, plugin.batch_size):
-                    plugin.run(
-                        getattr(log_entry, plugin.consumed_attr) for log_entry in batch
-                    )
+                attrs = {
+                    getattr(log_entry, plugin.consumed_attr)
+                    for log_entry in log_entries
+                }
+                for batch in batcher(attrs, plugin.batch_size):
+                    plugin.run(batch)
 
         for log_entry in log_entries:
             for plugin in self.plugins_loaded:

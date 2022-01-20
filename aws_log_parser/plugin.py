@@ -1,5 +1,6 @@
 import concurrent.futures
 import logging
+import pprint
 import typing
 
 from dataclasses import dataclass, field
@@ -26,6 +27,7 @@ class AwsLogParserPlugin:
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def run(self, values):
+        logger.debug(pprint.pformat(values))
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.max_workers
@@ -46,8 +48,6 @@ class AwsLogParserPlugin:
 
     def augment(self, log_entry):
         if self.consumed_attr and self.produced_attr:
-            setattr(
-                log_entry,
-                self.produced_attr,
-                self._results.get(getattr(log_entry, self.consumed_attr)),
-            )
+            value = self._results.get(getattr(log_entry, self.consumed_attr))
+            logger.debug(f"{self.produced_attr}: {self.consumed_attr}={value}")
+            setattr(log_entry, self.produced_attr, value)

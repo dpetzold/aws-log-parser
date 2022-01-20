@@ -1,4 +1,5 @@
 import logging
+import pprint
 from dataclasses import dataclass
 
 from aws_log_parser.aws.plugin import AwsPluginBase
@@ -31,31 +32,37 @@ class AwsPluginInstanceName(AwsPluginBase):
             for instance in reservation["Instances"]
         ]
 
+        results = {}
         for instance in instances:
+
+            name = self.aws_client.get_tag(instance["Tags"], "Name")
+
+            logger.debug(name)
+            if not instance["NetworkInterfaces"]:
+                pprint.pprint(instance)
+                logger.debug(pprint.pformat(instance))
+
             private_ips = [
                 address["PrivateIpAddress"]
                 for ni in instance["NetworkInterfaces"]
                 for address in ni["PrivateIpAddresses"]
             ]
 
-            name = self.aws_client.get_tag(instance["Tags"], "Name")
-
-            return {private_ip: name for private_ip in private_ips}
-        return {}
+            results.update({private_ip: name for private_ip in private_ips})
+        return results
 
     def augment(self, log_entry):
+        default = (
+            log_entry.instance_id
+            if log_entry.instance_id and log_entry.instance_id.startswith("ecs:")
+            else self._results.get(
+                log_entry.client_ip,
+                log_entry.instance_id if log_entry.instance_id else log_entry.client_ip,
+            )
+        )
 
         setattr(
             log_entry,
             self.produced_attr,
-            (
-                log_entry.instance_id
-                if log_entry.instance_id and log_entry.instance_id.startswith("ecs:")
-                else self._results.get(
-                    log_entry.client_ip,
-                    log_entry.instance_id
-                    if log_entry.instance_id
-                    else log_entry.client_ip,
-                )
-            ),
+            self._results.get(log_entry.client_ip, default),
         )
