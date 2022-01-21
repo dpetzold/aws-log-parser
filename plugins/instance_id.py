@@ -1,5 +1,4 @@
 import logging
-import pprint
 from dataclasses import dataclass
 
 from aws_log_parser.aws.plugin import AwsPluginBase
@@ -23,7 +22,13 @@ class AwsPluginInstanceId(AwsPluginBase):
             ecs_service = self.aws_client.get_tag(ni["TagSet"], "aws:ecs:serviceName")
             return f"ecs:{ecs_service}"
 
-        return ni["Attachment"].get("InstanceId") if ni.get("Attachment") else None
+        instance_id = (
+            ni["Attachment"].get("InstanceId") if ni.get("Attachment") else None
+        )
+        if instance_id:
+            return instance_id
+
+        return ", ".join(group["GroupName"] for group in ni["Groups"])
 
     def query(self, ips):
         assert self.aws_client
@@ -37,10 +42,4 @@ class AwsPluginInstanceId(AwsPluginBase):
             ],
         )["NetworkInterfaces"]
 
-        logger.debug(len(nis))
-        logger.debug(pprint.pformat(nis[0]))
-        logger.debug(pprint.pformat(self.instance_id(nis[0])))
-
-        d = {ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis}
-        logger.debug(len(d))
-        return d
+        return {ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis}

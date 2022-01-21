@@ -74,9 +74,9 @@ class AwsLogParser:
                         new_fields.append(
                             (
                                 _field.default,
-                                typing.Optional[_field.metadata["type"]]
+                                _field.metadata["type"]
                                 if _field.metadata
-                                else typing.Optional[_field.type],
+                                else _field.type,
                                 field(default=None, init=False),
                             )
                         )
@@ -162,10 +162,6 @@ class AwsLogParser:
                 except Exception as exc:
                     logger.warn(str(exc), exc_info=True)
 
-        for plugin in self.plugins_loaded:
-            if plugin.consumed_attr not in produced_attrs:
-                pprint(plugin._results)
-
         for log_entry in log_entries:
             for plugin in self.plugins_loaded:
                 if plugin.consumed_attr not in produced_attrs:
@@ -179,7 +175,6 @@ class AwsLogParser:
                     for log_entry in log_entries
                     if getattr(log_entry, plugin.consumed_attr)
                 }
-                logger.debug(len(attrs))
                 for batch in batcher(attrs, plugin.batch_size):
                     plugin.run(batch)
 
@@ -188,9 +183,13 @@ class AwsLogParser:
                 if plugin.consumed_attr in produced_attrs:
                     plugin.augment(log_entry)
 
+        for plugin in self.plugins_loaded:
+            if hasattr(plugin, "requests"):
+                print(f"{plugin.produced_attr}: {plugin.requests:,} requests")
+
         yield from log_entries
 
-    def parse(self, content: typing.List[str]):
+    def parse(self, content):
         model_fields = fields(self.log_type.model)
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
@@ -200,15 +199,6 @@ class AwsLogParser:
                         for value, field in zip(row, model_fields)
                     ]
                 )
-
-    def _parse(self, content):
-        log_entries = self._parse(content)
-
-        yield from self.run_plugins(log_entries)
-
-        for plugin in self.plugins_loaded:
-            if hasattr(plugin, "requests"):
-                print(f"{plugin.produced_attr}: {plugin.requests:,} requests")
 
     def yield_file(self, path):
         with open(path) as log_data:
