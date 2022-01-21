@@ -74,10 +74,10 @@ class AwsLogParser:
                         new_fields.append(
                             (
                                 _field.default,
-                                _field.metadata["type"]
+                                typing.Optional[_field.metadata["type"]]
                                 if _field.metadata
-                                else _field.type,
-                                field(init=False),
+                                else typing.Optional[_field.type],
+                                field(default=None, init=False),
                             )
                         )
             self.model = make_dataclass(
@@ -94,17 +94,6 @@ class AwsLogParser:
         self.plugin_produced_attrs = {
             plugin.produced_attr for plugin in self.plugins_loaded
         }
-
-    def _parse(self, content: typing.List[str]):
-        model_fields = fields(self.log_type.model)
-        for row in csv.reader(content, delimiter=self.log_type.delimiter):
-            if not row[0].startswith("#"):
-                yield self.model(  # type: ignore
-                    *[
-                        to_python(value, field)
-                        for value, field in zip(row, model_fields)
-                    ]
-                )
 
     def load_plugin(self, plugin, plugin_path):
         plugin_module, plugin_classs = plugin.split(":")
@@ -166,6 +155,16 @@ class AwsLogParser:
             }
 
             concurrent.futures.wait(futures)
+            # Check for exceptions
+            for future in futures:
+                try:
+                    future.result()
+                except Exception as exc:
+                    logger.warn(str(exc), exc_info=True)
+
+        for plugin in self.plugins_loaded:
+            if plugin.consumed_attr not in produced_attrs:
+                pprint(plugin._results)
 
         for log_entry in log_entries:
             for plugin in self.plugins_loaded:
@@ -180,6 +179,7 @@ class AwsLogParser:
                     for log_entry in log_entries
                     if getattr(log_entry, plugin.consumed_attr)
                 }
+                logger.debug(len(attrs))
                 for batch in batcher(attrs, plugin.batch_size):
                     plugin.run(batch)
 
@@ -190,7 +190,18 @@ class AwsLogParser:
 
         yield from log_entries
 
-    def parse(self, content):
+    def parse(self, content: typing.List[str]):
+        model_fields = fields(self.log_type.model)
+        for row in csv.reader(content, delimiter=self.log_type.delimiter):
+            if not row[0].startswith("#"):
+                yield self.model(  # type: ignore
+                    *[
+                        to_python(value, field)
+                        for value, field in zip(row, model_fields)
+                    ]
+                )
+
+    def _parse(self, content):
         log_entries = self._parse(content)
 
         yield from self.run_plugins(log_entries)
@@ -280,10 +291,10 @@ class AwsLogParser:
         parsed = urlparse(url)
 
         if parsed.scheme == "file":
-            yield from self.read_files(parsed.path)
+            log_entries = self.read_files(parsed.path)
 
         elif parsed.scheme == "s3":
-            yield from self.read_s3(
+            log_entries = self.read_s3(
                 parsed.netloc,
                 parsed.path.lstrip("/"),
                 endswith=self.file_suffix,
@@ -291,3 +302,5 @@ class AwsLogParser:
 
         else:
             raise ValueError(f"Unknown scheme {parsed.scheme}")
+
+        yield from self.run_plugins(log_entries)

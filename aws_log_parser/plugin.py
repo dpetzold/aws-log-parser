@@ -27,6 +27,7 @@ class AwsLogParserPlugin:
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def run(self, values):
+        logger.debug(self.produced_attr)
         logger.debug(pprint.pformat(values))
 
         with concurrent.futures.ThreadPoolExecutor(
@@ -39,15 +40,23 @@ class AwsLogParserPlugin:
             }
 
             for future in concurrent.futures.as_completed(futures):
-                result = future.result()
-                if result:
-                    self._results.update(result)
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    logger.error(str(exc), exc_info=True)
+                else:
+                    if result:
+                        self._results.update(result)
 
     def query(self, _):
         raise NotImplementedError
 
     def augment(self, log_entry):
         if self.consumed_attr and self.produced_attr:
-            value = self._results.get(getattr(log_entry, self.consumed_attr))
-            logger.debug(f"{self.produced_attr}: {self.consumed_attr}={value}")
-            setattr(log_entry, self.produced_attr, value)
+            consumed_value = getattr(log_entry, self.consumed_attr)
+            produced_value = self._results.get(consumed_value)
+            setattr(
+                log_entry,
+                self.produced_attr,
+                produced_value,
+            )
