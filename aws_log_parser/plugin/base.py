@@ -5,7 +5,7 @@ import typing
 
 from dataclasses import dataclass, field
 
-from .util import batcher
+from ..util import batcher
 
 logger = logging.getLogger(__name__)
 
