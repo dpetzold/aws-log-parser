@@ -44,13 +44,9 @@ class PluginRunner:
             for plugin in self.plugins
         ]
 
-        self.plugin_consumed_attrs = {
-            plugin.consumed_attr for plugin in self.plugins_loaded
-        }
+        self.consumed_attrs = {plugin.consumed_attr for plugin in self.plugins_loaded}
 
-        self.plugin_produced_attrs = {
-            plugin.produced_attr for plugin in self.plugins_loaded
-        }
+        self.produced_attrs = {plugin.produced_attr for plugin in self.plugins_loaded}
 
     def make_model(self, model):
         # Create a new LogEntry model with the plugin fields.
@@ -101,8 +97,8 @@ class PluginRunner:
 
         _log_entries = []
         for log_entry in log_entries:
-            for consumed_attr in self.plugin_consumed_attrs:
-                if consumed_attr not in self.plugin_produced_attrs:
+            for consumed_attr in self.consumed_attrs:
+                if consumed_attr not in self.produced_attrs:
                     self._plugin_attr_values[consumed_attr].add(
                         getattr(log_entry, consumed_attr)
                     )
@@ -116,6 +112,8 @@ class PluginRunner:
         """
 
         log_entries = self.init_plugins(log_entries)
+
+        logger.debug(self.produced_attrs)
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=len(self.plugins_loaded),
@@ -142,14 +140,18 @@ class PluginRunner:
                 if plugin.consumed_attr not in self.produced_attrs:
                     plugin.augment(log_entry)
 
+        logger.debug(log_entries[0])
+
         # Run plugins with dependant fields.
         for plugin in self.plugins_loaded:
             if plugin.consumed_attr in self.produced_attrs:
+                logger.debug(plugin)
                 attrs = {
                     getattr(log_entry, plugin.consumed_attr)
                     for log_entry in log_entries
                     if getattr(log_entry, plugin.consumed_attr)
                 }
+                logger.debug(attrs)
                 for batch in batcher(attrs, plugin.batch_size):
                     plugin.run(batch)
 

@@ -27,8 +27,7 @@ class AwsLogParserPlugin:
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def run(self, values):
-        logger.debug(self.produced_attr)
-        logger.debug(pprint.pformat(values))
+        logger.debug(f"{self.produced_attr} {pprint.pformat(values)}")
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.max_workers

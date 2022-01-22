@@ -32,7 +32,7 @@ class AwsPluginInstanceId(AwsPluginBase):
 
     def query(self, ips):
         assert self.aws_client
-        logger.info(len(ips))
+        logger.debug(len(ips))
         nis = self.aws_client.ec2_client.describe_network_interfaces(
             Filters=[
                 {
