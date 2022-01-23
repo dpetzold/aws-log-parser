@@ -21,10 +21,11 @@ class IpResolverPlugin(AwsLogParserPlugin):
 
     def query(self, ip_address):
         self.requests += 1
-        socket.setdefaulttimeout(self.socket_timeout)
+        # socket.setdefaulttimeout(self.socket_timeout)
         try:
             hostname = socket.gethostbyaddr(ip_address)[0]
         except (socket.herror, socket.gaierror):
             logger.debug(f"Unable to resolve {ip_address}", exc_info=True)
+            return {ip_address: None}
         else:
-            return hostname
+            return {ip_address: hostname}

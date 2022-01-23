@@ -16,6 +16,7 @@ class AwsPluginInstanceName(AwsPluginBase):
     def query(self, instance_ids):
         assert self.aws_client
         logger.debug(len(instance_ids))
+
         reservations = self.aws_client.ec2_client.describe_instances(
             Filters=[
                 {

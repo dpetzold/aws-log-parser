@@ -4,6 +4,7 @@ import pandas
 
 from collections import Counter
 from pathlib import Path
+from pprint import pprint
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -37,7 +38,9 @@ def aws_info(entries):
     table.add_column("%", justify="right")
 
     total = counter.total()
-    for i, pair in enumerate(sorted(counter.items(), key=lambda t: t[1]), 1):
+    for i, pair in enumerate(
+        sorted(counter.items(), key=lambda t: t[1], reverse=True), 1
+    ):
         instance_name, count = pair
         table.add_row(
             str(i),
@@ -52,16 +55,14 @@ def aws_info(entries):
     console.print(table)
 
 
-def public_info(log_entries):
-
-    # print(f"public_info: {len(list(log_entries))}")
+def public_info(log_entries, limit=10):
 
     df = pandas.DataFrame(
         [
             {
                 "client_ip": log_entry.client_ip,
-                # "hostname": log_entry.hostname,
-                # "network": log_entry.network,
+                "hostname": log_entry.hostname,
+                "network": log_entry.network,
                 "os_family": log_entry.user_agent_obj.os.family,
                 "browser_family": log_entry.user_agent_obj.browser.family,
             }
@@ -69,21 +70,14 @@ def public_info(log_entries):
         ]
     )
 
-    if False:
-        from pprint import pprint
-
-        pprint(next(log_entries))
-
-        df = pandas.DataFrame(log_entries)
-
     pandas.set_option("display.max_columns", None)
 
     grouped = (
         df.groupby(
             [
                 "client_ip",
-                # "network",
-                # "hostname",
+                "network",
+                "hostname",
                 "browser_family",
                 "os_family",
             ],
@@ -91,16 +85,17 @@ def public_info(log_entries):
         )
         .size()
         .sort_values("size", ascending=False)
-    ).rename(
-        columns={
-            "size": "Requests",
-            "client_ip": "ClientIp",
-            # "network": "Network",
-            # "hostname": "Hostname",
-        }
+        .rename(
+            columns={
+                "size": "Requests",
+                "client_ip": "ClientIp",
+                "network": "Network",
+                "hostname": "Hostname",
+            }
+        )
     )
 
-    print(grouped[:5])
+    print(grouped[:limit])
 
 
 def _():
@@ -164,12 +159,12 @@ def main():
     )
 
     parser.add_argument(
-        "--profile",
+        "--aws-profile",
         help="The aws profile to use.",
     )
 
     parser.add_argument(
-        "--region",
+        "--aws-region",
         help="The aws region to use.",
     )
 
@@ -182,6 +177,8 @@ def main():
         "--instance-id",
     )
 
+    parser.add_argument("--profile", choices=["public", "aws"], default=None)
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -191,22 +188,32 @@ def main():
         handlers=[RichHandler()],
     )
 
+    if args.profile == "aws":
+        plugins = [
+            "instance_id:AwsPluginInstanceId",
+            "instance_name:AwsPluginInstanceName",
+        ]
+        display_func = aws_info
+    elif args.profile == "public":
+        plugins = [
+            "dns_resolver:IpResolverPlugin",
+            "radb:RadbPlugin",
+            "user_agent:UserAgentPlugin",
+        ]
+        display_func = public_info
+    else:
+        plugins = []
+        display_func = pprint
+
     log_entries = AwsLogParser(
         log_type=args.log_type,
-        profile=args.profile,
-        region=args.region,
+        aws_profile=args.aws_profile,
+        aws_region=args.aws_region,
         verbose=args.verbose,
         plugin_paths=[
             Path(__file__).parents[2] / "plugins",
         ],
-        plugins=[
-            "instance_id:AwsPluginInstanceId",
-            "instance_name:AwsPluginInstanceName",
-            # "dns_resolver:IpResolverPlugin",
-            # "radb:RadbPlugin",
-            # "user_agent:UserAgentPlugin",
-        ],
+        plugins=plugins,
     ).read_url(args.url)
 
-    aws_info(log_entries)
-    # public_info(log_entries)
+    display_func(log_entries)

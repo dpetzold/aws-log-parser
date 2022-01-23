@@ -47,5 +47,6 @@ class RadbPlugin(AwsLogParserPlugin):
             ConnectionResetError,
         ):
             logger.debug(f"{ip_address} lookup failed", exc_info=True)
+            return {ip_address: None}
         else:
-            return self.parse_response(response).get("descr")
+            return {ip_address: self.parse_response(response).get("descr")}

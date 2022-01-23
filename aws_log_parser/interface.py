@@ -25,11 +25,11 @@ logger = logging.getLogger(__name__)
 class AwsLogParser:
 
     log_type: LogFormat
-    aws_client: typing.Optional[AwsClient] = None
 
     # Optional
-    region: typing.Optional[str] = None
-    profile: typing.Optional[str] = None
+    aws_client: typing.Optional[AwsClient] = None
+    aws_region: typing.Optional[str] = None
+    aws_profile: typing.Optional[str] = None
     file_suffix: str = ".log"
     verbose: bool = False
 
@@ -42,7 +42,7 @@ class AwsLogParser:
 
     def __post_init__(self):
         self.aws_client = AwsClient(
-            region=self.region, profile=self.profile, verbose=self.verbose
+            region=self.aws_region, profile=self.aws_profile, verbose=self.verbose
         )
 
         self.plugin_runner = PluginRunner(
@@ -66,7 +66,9 @@ class AwsLogParser:
 
     def parse(self, content):
         log_entries = self._parse(content)
-        yield from self.plugin_runner.run(log_entries)
+        if self.plugin_runner:
+            yield from self.plugin_runner.run(log_entries)
+        yield from log_entries
 
     def yield_file(self, path):
         with open(path) as log_data:
@@ -122,6 +124,7 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
+        assert self.aws_client
         yield from self.parse(
             self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
         )

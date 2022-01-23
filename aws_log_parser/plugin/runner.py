@@ -29,11 +29,6 @@ class PluginRunner:
     consumed_attrs: typing.Set[str] = field(default_factory=set)
     produced_attrs: typing.Set[str] = field(default_factory=set)
 
-    # XXX: drop
-    _plugin_attr_values: typing.Dict[str, typing.Set[str]] = field(
-        default_factory=lambda: defaultdict(set)
-    )
-
     def __post_init__(self):
 
         self.plugins_loaded = [
@@ -45,7 +40,6 @@ class PluginRunner:
         ]
 
         self.consumed_attrs = {plugin.consumed_attr for plugin in self.plugins_loaded}
-
         self.produced_attrs = {plugin.produced_attr for plugin in self.plugins_loaded}
 
     def make_model(self, model):
@@ -91,29 +85,25 @@ class PluginRunner:
         kwargs = {"aws_client": self.aws_client} if requires_aws_client else {}
         return plugin_cls(**kwargs)
 
-    def init_plugins(self, log_entries):
+    def get_consumed_attr_values(self, log_entries):
 
-        # XXX: is there a way to not copy here
-
-        _log_entries = []
+        consumed_attr_values = defaultdict(set)
         for log_entry in log_entries:
             for consumed_attr in self.consumed_attrs:
                 if consumed_attr not in self.produced_attrs:
-                    self._plugin_attr_values[consumed_attr].add(
+                    consumed_attr_values[consumed_attr].add(
                         getattr(log_entry, consumed_attr)
                     )
-            _log_entries.append(log_entry)
 
-        return _log_entries
+        return consumed_attr_values
 
     def run(self, log_entries):
         """
         Run the plugins concurrently.
         """
+        log_entries = list(log_entries)
 
-        log_entries = self.init_plugins(log_entries)
-
-        logger.debug(self.produced_attrs)
+        consumed_attr_values = self.get_consumed_attr_values(log_entries)
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=len(self.plugins_loaded),
@@ -121,7 +111,7 @@ class PluginRunner:
 
             futures = {
                 executor.submit(
-                    plugin.run, self._plugin_attr_values[plugin.consumed_attr]  # type: ignore
+                    plugin.run, consumed_attr_values[plugin.consumed_attr]  # type: ignore
                 )
                 for plugin in self.plugins_loaded
                 if plugin.consumed_attr not in self.produced_attrs
@@ -140,18 +130,14 @@ class PluginRunner:
                 if plugin.consumed_attr not in self.produced_attrs:
                     plugin.augment(log_entry)
 
-        logger.debug(log_entries[0])
-
         # Run plugins with dependant fields.
         for plugin in self.plugins_loaded:
             if plugin.consumed_attr in self.produced_attrs:
-                logger.debug(plugin)
                 attrs = {
                     getattr(log_entry, plugin.consumed_attr)
                     for log_entry in log_entries
                     if getattr(log_entry, plugin.consumed_attr)
                 }
-                logger.debug(attrs)
                 for batch in batcher(attrs, plugin.batch_size):
                     plugin.run(batch)
 

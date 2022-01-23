@@ -16,7 +16,7 @@ class AwsLogParserPlugin:
     Resolve the instance_id from its private ip address.
     """
 
-    batch_size: int = 1
+    batch_size: typing.Optional[int] = None
     max_workers: typing.Optional[int] = None
 
     # Overriden
@@ -27,16 +27,21 @@ class AwsLogParserPlugin:
     _results: typing.Dict[str, typing.Optional[str]] = field(default_factory=dict)
 
     def run(self, values):
-        logger.debug(f"{self.produced_attr} {pprint.pformat(values)}")
+        unknown = values - self._results.keys()
+        logger.debug(f"{self.produced_attr} {pprint.pformat(unknown)}")
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self.max_workers
         ) as executor:
 
-            futures = {
-                executor.submit(self.query, batch)
-                for batch in batcher(values, self.batch_size)
-            }
+            futures = (
+                {
+                    executor.submit(self.query, batch)
+                    for batch in batcher(unknown, self.batch_size)
+                }
+                if self.batch_size
+                else {executor.submit(self.query, value) for value in unknown}
+            )
 
             for future in concurrent.futures.as_completed(futures):
                 try:

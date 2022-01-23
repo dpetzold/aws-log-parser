@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 @dataclass
 class UserAgentPlugin(AwsLogParserPlugin):
     """
-    Resolve the hostname from the client ip address.
+    Parse the user_agent.
     """
 
     consumed_attr: str = "user_agent"
     produced_attr: str = field(default="user_agent_obj", metadata={"type": UserAgent})
 
     def query(self, user_agent):
-        return parse(user_agent)
+        return {user_agent: parse(user_agent)}
