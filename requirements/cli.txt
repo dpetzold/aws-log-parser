@@ -3,3 +3,4 @@ rich
 user-agents==2.0
 geoip2==2.9.0
 python-whois==0.7.1
+pandas

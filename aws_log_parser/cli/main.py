@@ -1,14 +1,12 @@
 import argparse
 import logging
 import pandas
+import operator
 
-from collections import Counter
 from pathlib import Path
-from pprint import pprint
 
 from rich.console import Console
 from rich.logging import RichHandler
-from rich.table import Table
 
 from ..interface import AwsLogParser
 from ..models import LogType
@@ -21,59 +19,31 @@ for name in ["boto", "urllib3", "s3transfer", "boto3", "botocore", "nose"]:
     logging.getLogger(name).setLevel(logging.CRITICAL)
 
 
-def aws_info(entries):
-    counter = Counter()
+def display_entries(log_entries, attrs, limit=10):
 
-    for entry in entries:
-        counter[
-            entry.instance_name
-            if hasattr(entry, "instance_name") and entry.instance_name
-            else (entry.instance_id if entry.instance_id else entry.client_ip)
-        ] += 1
+    pandas.set_option("display.max_columns", None)
 
-    table = Table(show_header=True)
-    table.add_column("", justify="left")
-    table.add_column("Instance Name", justify="left")
-    table.add_column("Requests", justify="right")
-    table.add_column("%", justify="right")
-
-    total = counter.total()
-    for i, pair in enumerate(
-        sorted(counter.items(), key=lambda t: t[1], reverse=True), 1
-    ):
-        instance_name, count = pair
-        table.add_row(
-            str(i),
-            instance_name,
-            f"{count:,}",
-            f"({(count/total) * 100:.2f}%)",
-            end_section=i == len(counter),
-        )
-
-    table.add_row("", "Total", f"{total:,}", "")
-
-    console.print(table)
-
-
-def public_info(log_entries, limit=10):
-
-    df = pandas.DataFrame(
+    print(
         [
             {
-                "client_ip": log_entry.client_ip,
-                "hostname": log_entry.hostname,
-                "network": log_entry.network,
-                "os_family": log_entry.user_agent_obj.os.family,
-                "browser_family": log_entry.user_agent_obj.browser.family,
+                attr_name: operator.attrgetter(attr_key)(log_entry)
+                for attr_name, attr_key in attrs.items()
             }
             for log_entry in log_entries
         ]
     )
 
-    pandas.set_option("display.max_columns", None)
-
-    grouped = (
-        df.groupby(
+    df = (
+        pandas.DataFrame(
+            [
+                {
+                    attr_name: operator.attrgetter(attr_key)(log_entry)
+                    for attr_name, attr_key in attrs.items()
+                }
+                for log_entry in log_entries
+            ]
+        )
+        .groupby(
             [
                 "client_ip",
                 "network",
@@ -88,40 +58,11 @@ def public_info(log_entries, limit=10):
         .rename(
             columns={
                 "size": "Requests",
-                "client_ip": "ClientIp",
-                "network": "Network",
-                "hostname": "Hostname",
             }
         )
     )
 
-    print(grouped[:limit])
-
-
-def _():
-    table = Table(show_header=True)
-    table.add_column("", justify="left")
-    table.add_column("ClientIp", justify="left")
-    table.add_column("Requests", justify="right")
-    table.add_column("Network", justify="right")
-    table.add_column("Hostname", justify="right")
-    # table.add_column("UserAgent", justify="right")
-    table.add_column("%", justify="right")
-
-    """
-    for
-        table.add_row(
-            str(i),
-            instance_name,
-            f"{count:,}",
-            f"({(count/total) * 100:.2f}%)",
-            end_section=i == len(client_ips),
-        )
-
-    table.add_row("", "Total", f"{total:,}", "")
-
-    console.print(table)
-    """
+    print(df[:limit])
 
 
 def main():
@@ -188,22 +129,41 @@ def main():
         handlers=[RichHandler()],
     )
 
+    plugins = []
+
+    display_attrs = {
+        "client_ip": "client_ip",
+    }
+
     if args.profile == "aws":
-        plugins = [
-            "instance_id:AwsPluginInstanceId",
-            "instance_name:AwsPluginInstanceName",
-        ]
-        display_func = aws_info
+        plugins.extend(
+            [
+                "instance_id:AwsPluginInstanceId",
+                "instance_name:AwsPluginInstanceName",
+            ]
+        )
+        display_attrs.update(
+            {
+                "instance_id": "instance_id",
+                "instance_name": "instance_name",
+            }
+        )
     elif args.profile == "public":
-        plugins = [
-            "dns_resolver:IpResolverPlugin",
-            "radb:RadbPlugin",
-            "user_agent:UserAgentPlugin",
-        ]
-        display_func = public_info
-    else:
-        plugins = []
-        display_func = pprint
+        plugins.extend(
+            [
+                "dns_resolver:IpResolverPlugin",
+                "radb:RadbPlugin",
+                "user_agent:UserAgentPlugin",
+            ]
+        )
+        display_attrs.update(
+            {
+                "hostname": "hostname",
+                "network": "network",
+                "os_family": "user_agent_obj.os.family",
+                "browser_family": "user_agent_obj.browser.family",
+            }
+        )
 
     log_entries = AwsLogParser(
         log_type=args.log_type,
@@ -216,4 +176,4 @@ def main():
         plugins=plugins,
     ).read_url(args.url)
 
-    display_func(log_entries)
+    display_entries(log_entries, display_attrs)
