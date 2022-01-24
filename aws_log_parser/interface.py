@@ -1,7 +1,10 @@
 import csv
 import typing
+import importlib
+import importlib.util
+import sys
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -9,6 +12,7 @@ from .aws import AwsClient
 from .models import (
     LogFormat,
 )
+from .util import batcher
 
 from .parser import to_python
 
@@ -17,16 +21,30 @@ from .parser import to_python
 class AwsLogParser:
 
     log_type: LogFormat
-    file_suffix: str = ".log"
 
     # Optional
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
+    file_suffix: str = ".log"
+    verbose: bool = False
+
+    plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
+    plugins: typing.List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.aws_client = AwsClient(region=self.region, profile=self.profile)
+        self.aws_client = AwsClient(
+            region=self.region, profile=self.profile, verbose=self.verbose
+        )
 
-    def parse(self, content: typing.List[str]):
+        self.plugins_loaded = [
+            self.load_plugin(
+                plugin,
+                self.plugin_paths[0],
+            )
+            for plugin in self.plugins
+        ]
+
+    def _parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
@@ -36,6 +54,29 @@ class AwsLogParser:
                         for value, field in zip(row, model_fields)
                     ]
                 )
+
+    def load_plugin(self, plugin, plugin_path):
+        plugin_module, plugin_classs = plugin.split(":")
+        spec = importlib.util.spec_from_file_location(
+            plugin_module, f"{plugin_path}/{plugin_module}.py"
+        )
+        if spec is None:
+            raise ValueError("{plugin} not found")
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[plugin_module] = module
+        spec.loader.exec_module(module)  # type: ignore
+        return getattr(module, plugin_classs)(aws_client=self.aws_client)
+
+    def run_plugin(self, plugin, log_entries):
+        for batch in batcher(log_entries, plugin.batch_size):
+            yield from plugin.augment(batch)
+
+    def parse(self, content):
+        log_entries = self._parse(content)
+        for plugin in self.plugins_loaded:
+            log_entries = self.run_plugin(plugin, log_entries)
+        yield from log_entries
 
     def read_file(self, path):
         """
@@ -47,6 +88,8 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
+        if self.verbose:
+            print(f"Reading file://{path}")
         with open(path) as log_data:
             yield from self.parse(log_data.readlines())
 

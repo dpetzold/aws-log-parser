@@ -2,7 +2,7 @@
 
 import pathlib
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 def get_requirement(name):
@@ -19,7 +19,7 @@ def get_requirements(requirements):
 
 setup(
     name="aws-log-parser",
-    version="2.0.1",
+    version="2.1.1",
     description="Parse AWS CloudFront and LoadBalancer logs into Python dataclasses",
     long_description=(pathlib.Path(__file__).parent / "README.md").read_text(),
     long_description_content_type="text/markdown",
@@ -27,9 +27,7 @@ setup(
     author="Derrick Petzold",
     author_email="github@petzold.io",
     license="Apache",
-    packages=[
-        "aws_log_parser",
-    ],
+    packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
