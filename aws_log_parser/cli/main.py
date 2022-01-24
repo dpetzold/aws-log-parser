@@ -23,16 +23,6 @@ def display_entries(log_entries, attrs, limit=10):
 
     pandas.set_option("display.max_columns", None)
 
-    print(
-        [
-            {
-                attr_name: operator.attrgetter(attr_key)(log_entry)
-                for attr_name, attr_key in attrs.items()
-            }
-            for log_entry in log_entries
-        ]
-    )
-
     df = (
         pandas.DataFrame(
             [
@@ -44,13 +34,7 @@ def display_entries(log_entries, attrs, limit=10):
             ]
         )
         .groupby(
-            [
-                "client_ip",
-                "network",
-                "hostname",
-                "browser_family",
-                "os_family",
-            ],
+            list(attrs.keys()),
             as_index=False,
         )
         .size()

@@ -101,6 +101,10 @@ class PluginRunner:
         """
         Run the plugins concurrently.
         """
+        if not self.plugins_loaded:
+            yield from log_entries
+            return
+
         log_entries = list(log_entries)
 
         consumed_attr_values = self.get_consumed_attr_values(log_entries)
