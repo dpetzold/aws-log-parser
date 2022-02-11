@@ -103,11 +103,7 @@ def main():
         default=".log",
     )
 
-    parser.add_argument(
-        "--instance-id",
-    )
-
-    parser.add_argument("--profile", choices=["public", "aws"], default=None)
+    parser.add_argument("--traffic-profile", choices=["public", "aws"], default=None)
 
     args = parser.parse_args()
 
@@ -124,7 +120,7 @@ def main():
         "client_ip": "client_ip",
     }
 
-    if args.profile == "aws":
+    if args.traffic_profile == "aws":
         plugins.extend(
             [
                 "instance_id:AwsPluginInstanceId",
@@ -137,7 +133,7 @@ def main():
                 "instance_name": "instance_name",
             }
         )
-    elif args.profile == "public":
+    elif args.traffic_profile == "public":
         plugins.extend(
             [
                 "dns_resolver:IpResolverPlugin",
