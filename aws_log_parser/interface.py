@@ -1,5 +1,4 @@
 import csv
-import gzip
 import logging
 import typing
 
@@ -16,6 +15,7 @@ from .models import (
 
 from .parser import to_python
 from .plugin import PluginRunner
+from .util import yield_gzip, yield_file
 
 
 logger = logging.getLogger(__name__)
@@ -70,14 +70,6 @@ class AwsLogParser:
             yield from self.plugin_runner.run(log_entries)
         yield from log_entries
 
-    def yield_file(self, path):
-        with open(path) as log_data:
-            yield from log_data.readlines()
-
-    def yield_gzip(self, path):
-        with gzip.open(path, "rt") as f:
-            yield from f.readlines()
-
     def read_file(self, path):
         """
         Yield parsed log entries from the given file.
@@ -91,7 +83,7 @@ class AwsLogParser:
         if self.verbose:
             print(f"Reading file://{path}")
 
-        yield_func = self.yield_gzip if path.suffix == ".gz" else self.yield_file
+        yield_func = yield_gzip if path.suffix == ".gz" else yield_file
 
         yield from self.parse(yield_func(path))
 

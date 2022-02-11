@@ -81,7 +81,15 @@ class LogEntry:
 
 
 @dataclass
-class ClassicLoadBalancerLogEntry(LogEntry):
+class BaseLoadBalancerLogEntry(LogEntry):
+    @property
+    def client_ip(self):
+        if self.client:  # type: ignore
+            return self.client.ip  # type: ignore
+
+
+@dataclass
+class ClassicLoadBalancerLogEntry(BaseLoadBalancerLogEntry):
     timestamp: datetime.datetime
     elb: str
     client: Host
@@ -98,14 +106,9 @@ class ClassicLoadBalancerLogEntry(LogEntry):
     ssl_cipher: str
     ssl_protocol: str
 
-    @property
-    def client_ip(self):
-        if self.client:
-            return self.client.ip
-
 
 @dataclass
-class LoadBalancerLogEntry(LogEntry):
+class LoadBalancerLogEntry(BaseLoadBalancerLogEntry):
     type: HttpType
     timestamp: datetime.datetime
     elb: str

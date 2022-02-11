@@ -1,8 +1,19 @@
+import gzip
 import socket
 import time
 
 from functools import cache
 from itertools import islice
+
+
+def yield_file(path):
+    with open(path) as log_data:
+        yield from log_data.readlines()
+
+
+def yield_gzip(path):
+    with gzip.open(path, "rt") as f:
+        yield from f.readlines()
 
 
 def batcher(iterable, batch_size):

@@ -99,6 +99,11 @@ def main():
     )
 
     parser.add_argument(
+        "--suffix",
+        default=".log",
+    )
+
+    parser.add_argument(
         "--instance-id",
     )
 
@@ -154,6 +159,7 @@ def main():
         aws_profile=args.aws_profile,
         aws_region=args.aws_region,
         verbose=args.verbose,
+        file_suffix=args.suffix,
         plugin_paths=[
             Path(__file__).parents[2] / "plugins",
         ],
