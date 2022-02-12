@@ -2,6 +2,7 @@ import argparse
 import logging
 import pandas
 import operator
+import sqlite3
 
 from pathlib import Path
 
@@ -47,6 +48,53 @@ def display_entries(log_entries, attrs, limit=10):
     )
 
     print(df[:limit])
+
+
+def local_table(table_name, batched):
+
+    con = sqlite3.connect(f"{table_name}.db")
+    cur = con.cursor()
+    cur.execute(f"create table {table_name} (client_ip, instance_id, instance_name)")
+
+    for batch in batched:
+        tuples = [
+            (log_entry.client_ip, log_entry.instance_id, log_entry.instance_name)
+            for log_entry in batch
+        ]
+
+        print(len(tuples))
+
+        cur.executemany(f"insert into {table_name} values (?, ?, ?)", tuples)
+
+    con.commit()
+    con.close()
+
+
+def read_table(table_name):
+
+    con = sqlite3.connect(table_name)
+    cur = con.cursor()
+
+    cur.execute(
+        f"""
+SELECT
+    COUNT(*) as count,
+    client_ip,
+    instance_id,
+    instance_name
+FROM
+    {table_name}
+GROUP BY
+    client_ip,
+    instance_id,
+    instance_name
+ORDER BY
+    count desc
+"""
+    )
+
+    for row in cur.fetchall():
+        print(row)
 
 
 def main():
@@ -103,6 +151,10 @@ def main():
         default=".log",
     )
 
+    parser.add_argument("--table-name")
+
+    parser.add_argument("--read-table")
+
     parser.add_argument("--traffic-profile", choices=["public", "aws"], default=None)
 
     args = parser.parse_args()
@@ -113,6 +165,9 @@ def main():
         datefmt="[%X]",
         handlers=[RichHandler()],
     )
+
+    if args.read_table:
+        return read_table(args.read_table)
 
     plugins = []
 
@@ -162,4 +217,7 @@ def main():
         plugins=plugins,
     ).read_url(args.url)
 
-    display_entries(log_entries, display_attrs)
+    if args.table_name:
+        local_table(args.table_name, log_entries)
+    else:
+        display_entries(log_entries, display_attrs)

@@ -102,7 +102,7 @@ class AwsLogParser:
             yield from self.read_file(path)
         else:
             for p in path.glob(f"**/*{self.file_suffix}"):
-                yield from self.read_file(p)
+                yield self.read_file(p)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
@@ -117,9 +117,11 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         assert self.aws_client
-        yield from self.parse(
-            self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
-        )
+
+        for keys in self.aws_client.s3_service.read_keys(
+            bucket, prefix, endswith=endswith
+        ):
+            yield self.parse(keys)
 
     def read_url(self, url):
         """

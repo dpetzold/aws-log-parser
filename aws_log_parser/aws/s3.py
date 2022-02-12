@@ -43,4 +43,4 @@ class S3Service(AwsService):
             if endswith and not file["Key"].endswith(endswith):
                 continue
 
-            yield from self.read_key(bucket, file["Key"])
+            yield self.read_key(bucket, file["Key"])
