@@ -60,7 +60,10 @@ def test_parse_file(cloudfront_parser):
 
 
 def test_parse_files(cloudfront_parser):
-    entries = cloudfront_parser.read_files("test/data")
+    entries = []
+    for batch in cloudfront_parser.read_files("test/data"):
+        entries.extend(batch)
+
     assert len(list(entries)) == 6
 
 
@@ -68,18 +71,25 @@ def test_parse_s3(monkeypatch, cloudfront_parser):
 
     monkeypatch.setattr(S3Service, "client", MockS3Client())
 
-    entries = cloudfront_parser.read_s3(
+    entries = []
+    for batch in cloudfront_parser.read_s3(
         "aws-logs-test-data",
         "cloudfront-multiple.log",
-    )
+    ):
+        entries.extend(batch)
+
     assert len(list(entries)) == 6
 
 
 def test_parse_url_s3(monkeypatch, cloudfront_parser):
     monkeypatch.setattr(S3Service, "client", MockS3Client())
-    entries = cloudfront_parser.read_url(
+
+    entries = []
+    for batch in cloudfront_parser.read_url(
         "s3://aws-logs-test-data/cloudfront-multiple.log"
-    )
+    ):
+        entries.extend(batch)
+
     assert len(list(entries)) == 6
 
 

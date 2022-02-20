@@ -2,7 +2,11 @@ import csv
 import logging
 import typing
 
-from dataclasses import dataclass, fields, field
+from dataclasses import (
+    dataclass,
+    fields,
+    field,
+)
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -32,6 +36,8 @@ class AwsLogParser:
     aws_profile: typing.Optional[str] = None
     file_suffix: str = ".log"
     verbose: bool = False
+    batched: bool = False
+    batch_size: int = 8192
 
     # Plugin
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
@@ -82,6 +88,9 @@ class AwsLogParser:
         """
         if self.verbose:
             print(f"Reading file://{path}")
+
+        if not isinstance(path, Path):
+            path = Path(path)
 
         yield_func = yield_gzip if path.suffix == ".gz" else yield_file
 
