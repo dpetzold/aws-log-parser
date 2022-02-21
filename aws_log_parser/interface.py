@@ -19,7 +19,11 @@ from .models import (
 
 from .parser import to_python
 from .plugin import PluginRunner
-from .util import yield_gzip, yield_file
+from .util import (
+    batcher,
+    yield_gzip,
+    yield_file,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -94,7 +98,13 @@ class AwsLogParser:
 
         yield_func = yield_gzip if path.suffix == ".gz" else yield_file
 
-        yield from self.parse(yield_func(path))
+        log_entries = self.parse(yield_func(path))
+
+        if self.batched:
+            for batch in batcher(log_entries, self.batch_size):
+                yield batch
+        else:
+            yield from log_entries
 
     def read_files(self, pathname):
         """
@@ -108,10 +118,21 @@ class AwsLogParser:
         """
         path = Path(pathname)
         if path.is_file():
-            yield from self.read_file(path)
+
+            if self.batched:
+                for batch in self.read_file(path):
+                    yield batch
+            else:
+                yield from self.read_file(path)
+
         else:
             for p in path.glob(f"**/*{self.file_suffix}"):
-                yield self.read_file(p)
+
+                if self.batched:
+                    for batch in self.read_file(p):
+                        yield batch
+                else:
+                    yield from self.read_file(p)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
@@ -130,7 +151,13 @@ class AwsLogParser:
         for keys in self.aws_client.s3_service.read_keys(
             bucket, prefix, endswith=endswith
         ):
-            yield self.parse(keys)
+            parsed = self.parse(keys)
+
+            if self.batched:
+                for batch in batcher(parsed, self.batch_size):
+                    yield batch
+            else:
+                yield from parsed
 
     def read_url(self, url):
         """

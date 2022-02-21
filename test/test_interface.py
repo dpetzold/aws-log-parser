@@ -54,16 +54,34 @@ def cloudfront_parser():
     )
 
 
+@pytest.fixture
+def cloudfront_parser_batched():
+    return AwsLogParser(log_type=LogType.CloudFront, batched=True, batch_size=2)
+
+
 def test_parse_file(cloudfront_parser):
     entries = cloudfront_parser.read_file("test/data/cloudfront-multiple.log")
     assert len(list(entries)) == 6
 
 
-def test_parse_files(cloudfront_parser):
+def test_parse_file_batched(cloudfront_parser_batched):
     entries = []
-    for batch in cloudfront_parser.read_files("test/data"):
+    for batch in cloudfront_parser_batched.read_file(
+        "test/data/cloudfront-multiple.log"
+    ):
         entries.extend(batch)
+    assert len(list(entries)) == 6
 
+
+def test_parse_files(cloudfront_parser):
+    entries = cloudfront_parser.read_files("test/data")
+    assert len(list(entries)) == 6
+
+
+def test_parse_files_batched(cloudfront_parser_batched):
+    entries = []
+    for batch in cloudfront_parser_batched.read_files("test/data"):
+        entries.extend(batch)
     assert len(list(entries)) == 6
 
 
@@ -71,25 +89,44 @@ def test_parse_s3(monkeypatch, cloudfront_parser):
 
     monkeypatch.setattr(S3Service, "client", MockS3Client())
 
+    entries = cloudfront_parser.read_s3(
+        "aws-logs-test-data",
+        "cloudfront-multiple.log",
+    )
+    assert len(list(entries)) == 6
+
+
+def test_parse_s3_batched(monkeypatch, cloudfront_parser_batched):
+
+    monkeypatch.setattr(S3Service, "client", MockS3Client())
+
     entries = []
-    for batch in cloudfront_parser.read_s3(
+    for batch in cloudfront_parser_batched.read_s3(
         "aws-logs-test-data",
         "cloudfront-multiple.log",
     ):
         entries.extend(batch)
 
-    assert len(list(entries)) == 6
+    assert len(entries) == 6
 
 
 def test_parse_url_s3(monkeypatch, cloudfront_parser):
     monkeypatch.setattr(S3Service, "client", MockS3Client())
 
+    entries = cloudfront_parser.read_url(
+        "s3://aws-logs-test-data/cloudfront-multiple.log"
+    )
+    assert len(list(entries)) == 6
+
+
+def test_parse_url_s3_batched(monkeypatch, cloudfront_parser_batched):
+    monkeypatch.setattr(S3Service, "client", MockS3Client())
+
     entries = []
-    for batch in cloudfront_parser.read_url(
+    for batch in cloudfront_parser_batched.read_url(
         "s3://aws-logs-test-data/cloudfront-multiple.log"
     ):
         entries.extend(batch)
-
     assert len(list(entries)) == 6
 
 
@@ -97,6 +134,15 @@ def test_parse_url_file(cloudfront_parser):
     entries = cloudfront_parser.read_url(
         f"file://{Path(__file__).parent}/data/cloudfront-multiple.log"
     )
+    assert len(list(entries)) == 6
+
+
+def test_parse_url_file_batched(cloudfront_parser_batched):
+    entries = []
+    for batch in cloudfront_parser_batched.read_url(
+        f"file://{Path(__file__).parent}/data/cloudfront-multiple.log"
+    ):
+        entries.extend(batch)
     assert len(list(entries)) == 6
 
 
