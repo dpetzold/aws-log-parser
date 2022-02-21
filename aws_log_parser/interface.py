@@ -80,6 +80,13 @@ class AwsLogParser:
             yield from self.plugin_runner.run(log_entries)
         yield from log_entries
 
+    def yeild_results(self, log_entries):
+        if self.batched:
+            for batch in batcher(log_entries, self.batch_size):
+                yield batch
+        else:
+            yield from log_entries
+
     def read_file(self, path):
         """
         Yield parsed log entries from the given file.
@@ -98,13 +105,14 @@ class AwsLogParser:
 
         yield_func = yield_gzip if path.suffix == ".gz" else yield_file
 
-        log_entries = self.parse(yield_func(path))
+        yield from self.yeild_results(self.parse(yield_func(path)))
 
+    def yield_file(self, path):
         if self.batched:
-            for batch in batcher(log_entries, self.batch_size):
+            for batch in self.read_file(path):
                 yield batch
         else:
-            yield from log_entries
+            yield from self.read_file(path)
 
     def read_files(self, pathname):
         """
@@ -118,21 +126,10 @@ class AwsLogParser:
         """
         path = Path(pathname)
         if path.is_file():
-
-            if self.batched:
-                for batch in self.read_file(path):
-                    yield batch
-            else:
-                yield from self.read_file(path)
-
+            yield from self.yield_file(path)
         else:
             for p in path.glob(f"**/*{self.file_suffix}"):
-
-                if self.batched:
-                    for batch in self.read_file(p):
-                        yield batch
-                else:
-                    yield from self.read_file(p)
+                yield from self.yield_file(p)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
@@ -151,13 +148,7 @@ class AwsLogParser:
         for keys in self.aws_client.s3_service.read_keys(
             bucket, prefix, endswith=endswith
         ):
-            parsed = self.parse(keys)
-
-            if self.batched:
-                for batch in batcher(parsed, self.batch_size):
-                    yield batch
-            else:
-                yield from parsed
+            yield from self.yeild_results(self.parse(keys))
 
     def read_url(self, url):
         """
