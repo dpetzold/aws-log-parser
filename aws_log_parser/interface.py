@@ -40,8 +40,7 @@ class AwsLogParser:
     aws_profile: typing.Optional[str] = None
     file_suffix: str = ".log"
     verbose: bool = False
-    batched: bool = False
-    batch_size: int = 8192
+    batch_size: int = 0
 
     # Plugin
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
@@ -81,7 +80,7 @@ class AwsLogParser:
         yield from log_entries
 
     def yeild_results(self, log_entries):
-        if self.batched:
+        if self.batch_size:
             for batch in batcher(log_entries, self.batch_size):
                 yield batch
         else:
@@ -108,7 +107,7 @@ class AwsLogParser:
         yield from self.yeild_results(self.parse(yield_func(path)))
 
     def yield_file(self, path):
-        if self.batched:
+        if self.batch_size:
             for batch in self.read_file(path):
                 yield batch
         else:

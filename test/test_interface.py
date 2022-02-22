@@ -56,7 +56,7 @@ def cloudfront_parser():
 
 @pytest.fixture
 def cloudfront_parser_batched():
-    return AwsLogParser(log_type=LogType.CloudFront, batched=True, batch_size=2)
+    return AwsLogParser(log_type=LogType.CloudFront, batch_size=2)
 
 
 def test_parse_file(cloudfront_parser):
