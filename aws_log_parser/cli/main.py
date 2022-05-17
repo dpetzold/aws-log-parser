@@ -22,6 +22,8 @@ for name in ["boto", "urllib3", "s3transfer", "boto3", "botocore", "nose"]:
 
 def display_entries(log_entries, attrs, limit=10):
 
+    pandas.set_option("max_columns", None)  # show all cols
+    pandas.set_option("max_colwidth", None)
     pandas.set_option("display.max_columns", None)
 
     df = (
@@ -47,7 +49,11 @@ def display_entries(log_entries, attrs, limit=10):
         )
     )
 
-    print(df[:limit])
+    for _, row in df[:limit].iterrows():
+        print(row)
+
+    sum_requests = sum(row["Requests"] for _, row in df.iterrows())
+    print(f"Total Requests: {sum_requests:,}")
 
 
 def local_table(table_name, batched):
@@ -102,6 +108,7 @@ def main():
     parser = argparse.ArgumentParser(description="Parse AWS log data.")
     parser.add_argument(
         "url",
+        nargs="+",
         help="Url to the file to parse",
     )
 
@@ -198,10 +205,11 @@ def main():
         )
         display_attrs.update(
             {
-                "hostname": "hostname",
-                "network": "network",
+                "user_agent": "user_agent",
                 "os_family": "user_agent_obj.os.family",
                 "browser_family": "user_agent_obj.browser.family",
+                "elb_status_code": "elb_status_code",
+                "target_status_code": "target_status_code",
             }
         )
 
@@ -215,7 +223,7 @@ def main():
             Path(__file__).parents[2] / "plugins",
         ],
         plugins=plugins,
-    ).read_url(args.url)
+    ).read_urls(args.url)
 
     if args.table_name:
         local_table(args.table_name, log_entries)

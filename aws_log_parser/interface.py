@@ -185,3 +185,7 @@ class AwsLogParser:
             raise ValueError(f"Unknown scheme {parsed.scheme}")
 
         yield from log_entries
+
+    def read_urls(self, urls):
+        for url in urls:
+            yield from self.read_url(url)

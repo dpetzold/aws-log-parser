@@ -90,6 +90,28 @@ If you need to set the AWS profile or region you can pass it to `AwsLogParser`:
 >>> )
 ```
 
+### Batched Results
+
+The results can be batched to avoid high memory usage when processing large
+amounts of data. To batch the results set the batch size:
+
+```python
+>>> parser = AwsLogParser(
+>>>     batch_size=8192,
+>>> )
+>>>
+>>> batched = parser.read_url(f"file://{os.cwd()}/logs/cloudfront")
+>>> for log_entries in batched:
+>>>     tuples = [
+>>>         (log_entry.client_ip, log_entry.instance_id, log_entry.instance_name)
+>>>         for log_entry in log_entries
+>>>     ]
+>>>
+>>>     cur.executemany(f"insert into {table_name} values (?, ?, ?)", tuples)
+```
+
+## Models
+
 ## Models
 
 See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models.py
