@@ -1,3 +1,5 @@
+import gzip
+
 from dataclasses import dataclass
 
 from .client import (
@@ -26,11 +28,16 @@ class S3Service(AwsService):
 
         return sorted(items, key=lambda x: x[sort_key], reverse=reverse)
 
-    def read_key(self, bucket, key):
+    def read_key(self, bucket, key, endswith=None):
         if self.aws_client.verbose:
             print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
-        yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
+        if endswith == ".gz":
+            with gzip.GzipFile(fileobj=contents["Body"]) as _gz:
+                yield from [line for line in _gz.read().decode("utf-8").splitlines()]
+        else:
+            yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
+        
 
     def read_keys(self, bucket, prefix, endswith=None):
 
@@ -38,4 +45,4 @@ class S3Service(AwsService):
             if endswith and not file["Key"].endswith(endswith):
                 continue
 
-            yield from self.read_key(bucket, file["Key"])
+            yield from self.read_key(bucket, file["Key"], endswith)
