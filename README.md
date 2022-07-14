@@ -62,6 +62,9 @@ The general method to read files is `read_url`. It returns a generator of
 dataclasses for the specified `LogType`. Currently the S3 and file
 schemes are supported.
 
+GZipped LoadBalancer logs are supported by passing `file_suffix=".gz"` to
+the AwsLogParser initilizer.
+
 S3:
 
 ```python
