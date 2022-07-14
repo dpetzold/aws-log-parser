@@ -31,12 +31,12 @@ class S3Service(AwsService):
     def read_key(self, bucket, key, endswith=None):
         if self.aws_client.verbose:
             print(f"Reading s3://{bucket}/{key}")
-        object = self.client.get_object(Bucket=bucket, Key=key)
+        contents = self.client.get_object(Bucket=bucket, Key=key)
         if endswith == ".gz":
-            with gzip.GzipFile(fileobj=object["Body"]) as _gz:
+            with gzip.GzipFile(fileobj=contents["Body"]) as _gz:
                 yield from [line for line in _gz.read().decode("utf-8").splitlines()]
         else:
-            yield from [line.decode("utf-8") for line in object["Body"].iter_lines()]
+            yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
         
 
     def read_keys(self, bucket, prefix, endswith=None):
