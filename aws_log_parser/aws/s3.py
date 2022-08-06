@@ -18,12 +18,13 @@ class S3Service(AwsService):
 
     def list_files(self, bucket, prefix, sort_key, reverse=True):
 
-        paginator = self.client.get_paginator("list_objects_v2").paginate(
+        items = self.paginate(
+            "s3",
+            "list_objects_v2",
+            "Contents",
             Bucket=bucket,
             Prefix=prefix,
         )
-
-        items = [item for page in paginator for item in page["Contents"]]
 
         return sorted(items, key=lambda x: x[sort_key], reverse=reverse)
 

@@ -63,3 +63,11 @@ class AwsService:
         for tag in tags:
             if tag["Key"] == name:
                 return tag["Value"]
+
+    def paginate(self, client_name, method_name, response_attr, **kwargs):
+        paginator = boto3.client(client_name).get_paginator(method_name)
+
+        page_iterator = paginator.paginate(**kwargs)
+
+        for page in page_iterator:
+            yield from page[response_attr]
