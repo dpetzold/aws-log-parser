@@ -12,7 +12,10 @@ from .aws import AwsClient
 from .models import (
     LogFormat,
 )
-from .util import batcher
+from .util import (
+    batcher,
+    yield_file,
+)
 
 from .parser import to_python
 
@@ -90,8 +93,8 @@ class AwsLogParser:
         """
         if self.verbose:
             print(f"Reading file://{path}")
-        with open(path) as log_data:
-            yield from self.parse(log_data.readlines())
+        with open(path, mode="rb" if path.endswith(".gz") else "r") as log_data:
+            yield from self.parse(yield_file(log_data, path))
 
     def read_files(self, pathname):
         """
