@@ -11,8 +11,8 @@ from http import cookies
 
 
 class HttpType(Enum):
-    Grpcs = "grpcs"
     Grpc = "grpc"
+    Grpcs = "grpcs"
     Http = "http"
     Https = "https"
     H2 = "h2"
