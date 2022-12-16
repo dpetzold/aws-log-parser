@@ -2,6 +2,7 @@ black
 bpython
 flake8
 pre-commit
+pyright
 setuptools
 sphinx
 tox
