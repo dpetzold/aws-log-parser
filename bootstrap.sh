@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 PYTHON_VERSION=3.10.9
 VIRTUALENV_NAME=aws-log-parser-${PYTHON_VERSION}
@@ -12,6 +12,7 @@ cd -
 echo "${VIRTUALENV_NAME}" > .python-version
 
 eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 pyenv install -s ${PYTHON_VERSION}
 if [ ! -e "${PYENV_ROOT}/versions/${VIRTUALENV_NAME}" ]; then
