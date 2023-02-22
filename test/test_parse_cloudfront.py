@@ -64,7 +64,7 @@ def test_cloudfront_entry2(
         sent_bytes=2390282,
         cookie=cookie_zip_code,
         client_ip="192.0.2.202",
-        uri_stream="/soundtrack/happy.mp3",
+        uri_stem="/soundtrack/happy.mp3",
         status_code=304,
         referrer="www.unknownsingers.com",
         uri_query={"a": ["b"], "c": ["d"]},

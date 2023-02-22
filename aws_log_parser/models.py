@@ -143,7 +143,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     client_ip: str
     http_method: str
     host: str
-    uri_stream: str
+    uri_stem: str
     status_code: int
     referrer: str
     user_agent: str

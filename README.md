@@ -108,7 +108,7 @@ See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models
         client_ip='192.0.2.10',
         http_method='GET',
         host='d111111abcdef8.cloudfront.net',
-        uri_stream='/view/my/file.html',
+        uri_stem='/view/my/file.html',
         status_code=200,
         referrer='www.displaymyfiles.com',
         user_agent='Mozilla/4.0 (compatible; MSIE 5.0b1; Mac_PowerPC)',
@@ -122,7 +122,7 @@ See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models
         time_taken=0.001,
         forwarded_for=None,
         ssl_protocol=None,
-        ssl_chipher=None,
+        ssl_cipher=None,
         edge_response_result_type='RefreshHit',
         protocol_version='HTTP/1.1',
     )
