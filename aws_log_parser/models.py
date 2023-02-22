@@ -157,7 +157,7 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     time_taken: float
     forwarded_for: typing.Optional[str]
     ssl_protocol: typing.Optional[str]
-    ssl_chipher: typing.Optional[str]
+    ssl_cipher: typing.Optional[str]
     edge_response_result_type: str
     protocol_version: str
     fle_encrypted_fields: str = ""
