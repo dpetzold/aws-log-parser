@@ -46,6 +46,7 @@ class AwsLogParser:
 
     def _parse(self, content: typing.List[str]):
         model_fields = fields(self.log_type.model)
+        assert self.log_type.delimiter
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
             if not row[0].startswith("#"):
                 yield self.log_type.model(  # type: ignore

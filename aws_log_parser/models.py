@@ -1,6 +1,5 @@
 import datetime
 import typing
-
 from enum import (
     Enum,
     auto,
@@ -75,6 +74,7 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
+@dataclass
 class LogEntry:
     pass
 
@@ -135,9 +135,19 @@ class LoadBalancerLogEntry(LogEntry):
 
 
 @dataclass
-class CloudFrontWebDistributionLogEntry(LogEntry):
+class CloudFrontLogEntry(LogEntry):
     date: datetime.date
     time: datetime.time
+
+    @property
+    def timestamp(self):
+        return datetime.datetime.fromisoformat(
+            f"{self.date}T{self.time}",
+        ).replace(tzinfo=datetime.timezone.utc)
+
+
+@dataclass
+class CloudFrontWebDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     sent_bytes: int
     client_ip: str
@@ -162,17 +172,9 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     protocol_version: str
     fle_encrypted_fields: str = ""
 
-    @property
-    def timestamp(self):
-        return datetime.datetime.fromisoformat(
-            f"{self.date}T{self.time}",
-        ).replace(tzinfo=datetime.timezone.utc)
-
 
 @dataclass
-class CloudFrontRTMPDistributionLogEntry(LogEntry):
-    date: str
-    time: str
+class CloudFrontRTMPDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     client_ip: str
     event: str
@@ -186,35 +188,128 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     user_agent: str
 
 
+# Begin WAF
+
+
+@dataclass
+class WafLogEntryNonTerminatingMatchingRules:
+    action: str
+    ruleId: str
+
+
+@dataclass
+class WafLogEntryExcludedRules:
+    exclusionType: str
+    ruleId: str
+
+
+@dataclass
+class WafLogEntryRuleGroup:
+    ruleGroupId: str
+    terminatingRule: typing.Optional[str]
+    nonTerminatingMatchingRules: WafLogEntryNonTerminatingMatchingRules
+    excludedRules: WafLogEntryExcludedRules
+
+
+@dataclass
+class WafLogEntryRateGroup:
+    rateBasedRuleId: str
+    limitKey: str
+    maxRateAllowed: int
+
+
+@dataclass
+class WafLogEntryNonTerminatingMatchingRule:
+    action: str
+    ruleId: str
+
+
+@dataclass
+class WafLogEntryHttpRequestHeader:
+    name: str
+    value: str
+
+
+@dataclass
+class WafLogEntryHttpRequest:
+    clientIp: str
+    country: str
+    headers: typing.List[WafLogEntryHttpRequestHeader]
+    uri: str
+    args: str
+    httpVersion: str
+    httpMethod: str
+    requestId: str
+
+
+@dataclass
+class WafLogEntry(LogEntry):
+    timestamp: datetime.datetime
+    formatVersion: int
+    webaclId: str
+    terminatingRuleId: str
+    terminatingRuleType: str
+    action: str
+    httpSourceName: str
+    httpSourceId: str
+    ruleGroupList: typing.List[WafLogEntryRuleGroup]
+    rateBasedRuleList: typing.List[WafLogEntryRuleGroup]
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule]
+    httpRequest: WafLogEntryHttpRequest
+
+
+class LogFormatType(Enum, str):
+    CSV = "CSV"
+    JSON = "JSON"
+
+
 @dataclass
 class LogFormat:
     name: str
     model: typing.Type[LogEntry]
-    delimiter: str
+    type: LogFormatType
+    delimiter: typing.Optional[str] = None
+
+
+def LogFormatCsv(**kwargs):
+    return LogFormat(delimiter=" ", type=LogFormatType.CSV, **kwargs)
+
+
+def LogFormatJson(**kwargs):
+    return LogFormat(type=LogFormatType.JSON, **kwargs)
+
+
+def LogFormatCsvSpaced(**kwargs):
+    return LogFormatCsv(delimiter=" ", **kwargs)
+
+
+def LogFormatCsvTabbed(**kwargs):
+    return LogFormatCsv(delimiter="\t", **kwargs)
 
 
 @dataclass
 class LogType:
-    ClassicLoadBalancer: LogFormat = LogFormat(
+    ClassicLoadBalancer: LogFormat = LogFormatCsvSpaced(
         name="ClassicLoadBalancer",
         model=ClassicLoadBalancerLogEntry,
-        delimiter=" ",
     )
 
-    LoadBalancer: LogFormat = LogFormat(
+    LoadBalancer: LogFormat = LogFormatCsvSpaced(
         name="LoadBalancer",
         model=LoadBalancerLogEntry,
-        delimiter=" ",
     )
 
-    CloudFront: LogFormat = LogFormat(
+    CloudFront: LogFormat = LogFormatCsvTabbed(
         name="CloudFront",
         model=CloudFrontWebDistributionLogEntry,
-        delimiter="\t",
     )
 
-    CloudFrontRTMP: LogFormat = LogFormat(
+    CloudFrontRTMP: LogFormat = LogFormatCsvTabbed(
         name="CloudFrontRTMP",
         model=CloudFrontRTMPDistributionLogEntry,
-        delimiter="\t",
+    )
+
+    WAF: LogFormat = LogFormatJson(
+        name="WAF",
+        model=WafLogEntry,
     )
