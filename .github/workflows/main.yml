@@ -1,4 +1,4 @@
-name: Build Status
+name: build status
 
 on: [push]
 
