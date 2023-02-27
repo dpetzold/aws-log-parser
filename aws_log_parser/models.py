@@ -5,7 +5,8 @@ from enum import (
     auto,
 )
 
-from dataclasses import dataclass
+from dataclasses_json import DataClassJsonMixin, config, dataclass_json
+from dataclasses import dataclass, field
 from http import cookies
 
 
@@ -75,7 +76,7 @@ class LoadBalancerErrorReason(Enum):
 
 
 @dataclass
-class LogEntry:
+class LogEntry(DataClassJsonMixin):
     pass
 
 
@@ -191,46 +192,53 @@ class CloudFrontRTMPDistributionLogEntry(CloudFrontLogEntry):
 # Begin WAF
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryNonTerminatingMatchingRules:
     action: str
     ruleId: str
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryExcludedRules:
     exclusionType: str
     ruleId: str
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryRuleGroup:
     ruleGroupId: str
     terminatingRule: typing.Optional[str]
-    nonTerminatingMatchingRules: WafLogEntryNonTerminatingMatchingRules
-    excludedRules: WafLogEntryExcludedRules
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRules]
+    excludedRules: typing.List[WafLogEntryExcludedRules]
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryRateGroup:
     rateBasedRuleId: str
     limitKey: str
     maxRateAllowed: int
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryNonTerminatingMatchingRule:
     action: str
     ruleId: str
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryHttpRequestHeader:
     name: str
     value: str
 
 
-@dataclass
+@dataclass_json
+@dataclass(frozen=True)
 class WafLogEntryHttpRequest:
     clientIp: str
     country: str
@@ -244,7 +252,12 @@ class WafLogEntryHttpRequest:
 
 @dataclass
 class WafLogEntry(LogEntry):
-    timestamp: datetime.datetime
+    timestamp: datetime.datetime = field(
+        metadata=config(
+            encoder=lambda t: datetime.datetime.timestamp(t) * 1000,
+            decoder=lambda t: datetime.datetime.utcfromtimestamp(t / 1000),
+        )
+    )
     formatVersion: int
     webaclId: str
     terminatingRuleId: str
@@ -253,12 +266,12 @@ class WafLogEntry(LogEntry):
     httpSourceName: str
     httpSourceId: str
     ruleGroupList: typing.List[WafLogEntryRuleGroup]
-    rateBasedRuleList: typing.List[WafLogEntryRuleGroup]
+    rateBasedRuleList: typing.List[WafLogEntryRateGroup]
     nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule]
     httpRequest: WafLogEntryHttpRequest
 
 
-class LogFormatType(Enum, str):
+class LogFormatType(str, Enum):
     CSV = "CSV"
     JSON = "JSON"
 
@@ -272,7 +285,7 @@ class LogFormat:
 
 
 def LogFormatCsv(**kwargs):
-    return LogFormat(delimiter=" ", type=LogFormatType.CSV, **kwargs)
+    return LogFormat(type=LogFormatType.CSV, **kwargs)
 
 
 def LogFormatJson(**kwargs):

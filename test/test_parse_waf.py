@@ -17,4 +17,5 @@ def test_waf_entry(waf_entry):
         WafLogEntry, parse_entry([json.loads(waf_entry.read())], LogType.WAF)
     )
     pprint(waf_entry)
+    pprint(waf_entry.schema())
     assert isinstance(waf_entry.timestamp, datetime.datetime) is True

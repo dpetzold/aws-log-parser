@@ -5,7 +5,6 @@ from aws_log_parser.aws.plugin import AwsPluginBase
 
 @dataclass
 class AwsPluginInstanceName(AwsPluginBase):
-
     attr_name: str = "instance_name"
 
     def query(self, instance_ids):
@@ -36,7 +35,6 @@ class AwsPluginInstanceName(AwsPluginBase):
             self._cache.update({private_ip: name for private_ip in private_ips})
 
     def augment(self, log_entries):
-
         instance_names = self.lookup(
             {
                 log_entry.instance_id

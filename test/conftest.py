@@ -59,6 +59,11 @@ def base_cloudfront_log_entry():
     )
 
 
+@pytest.fixture
+def waf_entry(shared_datadir):
+    return (shared_datadir / "waf_log.json").open()
+
+
 def log_entry(shared_datadir, test_name):
     return (shared_datadir / f"{test_name}.csv").open()
 
