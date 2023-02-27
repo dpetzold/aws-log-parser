@@ -303,27 +303,27 @@ def LogFormatCsvTabbed(**kwargs):
 
 @dataclass
 class LogType:
-    ClassicLoadBalancer: LogFormat = LogFormatCsvSpaced(
+    ClassicLoadBalancer: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
         name="ClassicLoadBalancer",
         model=ClassicLoadBalancerLogEntry,
     )
 
-    LoadBalancer: LogFormat = LogFormatCsvSpaced(
+    LoadBalancer: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
         name="LoadBalancer",
         model=LoadBalancerLogEntry,
     )
 
-    CloudFront: LogFormat = LogFormatCsvTabbed(
+    CloudFront: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFront",
         model=CloudFrontWebDistributionLogEntry,
     )
 
-    CloudFrontRTMP: LogFormat = LogFormatCsvTabbed(
+    CloudFrontRTMP: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFrontRTMP",
         model=CloudFrontRTMPDistributionLogEntry,
     )
 
-    WAF: LogFormat = LogFormatJson(
+    WAF: typing.ClassVar[LogFormat] = LogFormatJson(
         name="WAF",
         model=WafLogEntry,
     )
