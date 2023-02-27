@@ -47,7 +47,6 @@ def count_hosts(entries):
 
 
 def main():
-
     parser = argparse.ArgumentParser(description="Parse AWS log data.")
     parser.add_argument(
         "url",

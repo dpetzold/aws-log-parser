@@ -20,7 +20,6 @@ from .parser import to_python
 
 @dataclass
 class AwsLogParser:
-
     log_type: LogFormat
 
     # Optional
@@ -45,22 +44,6 @@ class AwsLogParser:
             for plugin in self.plugins
         ]
 
-    def parse_csv(self, content: typing.List[str]):
-        model_fields = fields(self.log_type.model)
-        assert self.log_type.delimiter
-        for row in csv.reader(content, delimiter=self.log_type.delimiter):
-            if not row[0].startswith("#"):
-                yield self.log_type.model(
-                    *[
-                        to_python(value, field)
-                        for value, field in zip(row, model_fields)
-                    ]
-                )
-
-    def parse_json(self, records):
-        for record in records:
-            yield self.log_type.model.from_dict(record)  # type: ignore
-
     def load_plugin(self, plugin, plugin_path):
         plugin_module, plugin_classs = plugin.split(":")
         spec = importlib.util.spec_from_file_location(
@@ -77,6 +60,22 @@ class AwsLogParser:
     def run_plugin(self, plugin, log_entries):
         for batch in batcher(log_entries, plugin.batch_size):
             yield from plugin.augment(batch)
+
+    def parse_csv(self, content):
+        model_fields = fields(self.log_type.model)
+        assert self.log_type.delimiter
+        for row in csv.reader(content, delimiter=self.log_type.delimiter):
+            if not row[0].startswith("#"):
+                yield self.log_type.model(
+                    *[
+                        to_python(value, field)
+                        for value, field in zip(row, model_fields)
+                    ]
+                )
+
+    def parse_json(self, records):
+        for record in records:
+            yield self.log_type.model.from_dict(record)  # type: ignore
 
     def parse(self, content):
         parse_func = (

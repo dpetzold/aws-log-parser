@@ -9,7 +9,6 @@ from aws_log_parser import AwsLogParser, LogType
 
 
 def count_ips(entries, ip_attr):
-
     counter = Counter(attrgetter(ip_attr)(entry) for entry in entries)
 
     for ip, count in sorted(counter.items()):

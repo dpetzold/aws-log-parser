@@ -9,7 +9,6 @@ from dataclasses import dataclass
 
 @dataclass
 class AwsClient:
-
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
     verbose: bool = False
@@ -56,7 +55,6 @@ class AwsClient:
 
 @dataclass
 class AwsService:
-
     aws_client: AwsClient
 
     def get_tag(self, tags, name):

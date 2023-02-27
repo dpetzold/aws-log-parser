@@ -9,7 +9,6 @@ from aws_log_parser import AwsLogParser, LogType
 
 
 def count_ips(entries, ip_attr):
-
     counter = Counter(attrgetter(ip_attr)(entry) for entry in entries)
 
     for ip, count in sorted(counter.items()):
@@ -44,7 +43,7 @@ def main():
         log_type=LogType.LoadBalancer,
         profile=args.profile,
         region=args.region,
-        file_suffix=".gz"
+        file_suffix=".gz",
     ).read_url(args.url)
 
     count_ips(entries, "client.ip")
