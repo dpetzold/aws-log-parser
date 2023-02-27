@@ -75,12 +75,12 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
-@dataclass
+@dataclass(frozen=True)
 class LogEntry(DataClassJsonMixin):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClassicLoadBalancerLogEntry(LogEntry):
     timestamp: datetime.datetime
     elb: str
@@ -106,7 +106,7 @@ class ClassicLoadBalancerLogEntry(LogEntry):
             return self.client.ip
 
 
-@dataclass
+@dataclass(frozen=True)
 class LoadBalancerLogEntry(LogEntry):
     type: HttpType
     timestamp: datetime.datetime
@@ -135,7 +135,7 @@ class LoadBalancerLogEntry(LogEntry):
     error_reason: typing.Optional[LoadBalancerErrorReason]
 
 
-@dataclass
+@dataclass(frozen=True)
 class CloudFrontLogEntry(LogEntry):
     date: datetime.date
     time: datetime.time
@@ -147,7 +147,7 @@ class CloudFrontLogEntry(LogEntry):
         ).replace(tzinfo=datetime.timezone.utc)
 
 
-@dataclass
+@dataclass(frozen=True)
 class CloudFrontWebDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     sent_bytes: int
@@ -174,7 +174,7 @@ class CloudFrontWebDistributionLogEntry(CloudFrontLogEntry):
     fle_encrypted_fields: str = ""
 
 
-@dataclass
+@dataclass(frozen=True)
 class CloudFrontRTMPDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     client_ip: str
@@ -251,7 +251,7 @@ class WafLogEntryHttpRequest:
 
 
 @dataclass_json
-@dataclass
+@dataclass(frozen=True)
 class WafLogEntry(LogEntry):
     timestamp: datetime.datetime = field(
         metadata=config(
