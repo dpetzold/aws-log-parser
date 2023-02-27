@@ -5,6 +5,7 @@ from enum import (
     auto,
 )
 
+from dataclasses_json import dataclass_json
 from dataclasses import dataclass
 from http import cookies
 
@@ -242,6 +243,7 @@ class WafLogEntryHttpRequest:
     requestId: str
 
 
+@dataclass_json
 @dataclass
 class WafLogEntry(LogEntry):
     timestamp: datetime.datetime
@@ -258,7 +260,7 @@ class WafLogEntry(LogEntry):
     httpRequest: WafLogEntryHttpRequest
 
 
-class LogFormatType(Enum, str):
+class LogFormatType(str, Enum):
     CSV = "CSV"
     JSON = "JSON"
 
@@ -272,7 +274,7 @@ class LogFormat:
 
 
 def LogFormatCsv(**kwargs):
-    return LogFormat(delimiter=" ", type=LogFormatType.CSV, **kwargs)
+    return LogFormat(type=LogFormatType.CSV, **kwargs)
 
 
 def LogFormatJson(**kwargs):
