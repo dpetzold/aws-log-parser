@@ -1,4 +1,5 @@
 import datetime
+import json
 import pytest
 
 
@@ -66,8 +67,8 @@ def log_entry(shared_datadir, test_name):
 
 
 @pytest.fixture
-def waf_entry(shared_datadir):
-    return fixture(shared_datadir, "waf_log.json")
+def waf_entry_dict(shared_datadir):
+    return json.loads(fixture(shared_datadir, "waf_log.json").read())
 
 
 @pytest.fixture
