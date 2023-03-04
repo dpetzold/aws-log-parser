@@ -273,6 +273,9 @@ class WafLogEntry(LogEntry):
         WafLogEntryNonTerminatingMatchingRule
     ] = field(default_factory=list)
 
+    def client_ip(self):
+        return self.httpRequest.clientIp
+
 
 class LogFormatType(str, Enum):
     CSV = "CSV"
