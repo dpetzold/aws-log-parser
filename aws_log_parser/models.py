@@ -273,6 +273,7 @@ class WafLogEntry(LogEntry):
         WafLogEntryNonTerminatingMatchingRule
     ] = field(default_factory=list)
 
+    @property
     def client_ip(self):
         return self.httpRequest.clientIp
 
