@@ -266,10 +266,12 @@ class WafLogEntry(LogEntry):
     action: str
     httpSourceName: str
     httpSourceId: str
-    ruleGroupList: typing.List[WafLogEntryRuleGroup]
-    rateBasedRuleList: typing.List[WafLogEntryRateGroup]
-    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule]
     httpRequest: WafLogEntryHttpRequest
+    ruleGroupList: typing.List[WafLogEntryRuleGroup] = field(default_factory=list)
+    rateBasedRuleList: typing.List[WafLogEntryRateGroup] = field(default_factory=list)
+    nonTerminatingMatchingRules: typing.List[
+        WafLogEntryNonTerminatingMatchingRule
+    ] = field(default_factory=list)
 
 
 class LogFormatType(str, Enum):
