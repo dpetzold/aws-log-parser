@@ -20,7 +20,6 @@ class AwsPluginBase:
         return self.aws_client.ec2_client
 
     def lookup(self, ips):
-
         unknown = ips - self._cache.keys()
 
         if unknown:

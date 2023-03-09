@@ -11,11 +11,11 @@ from aws_log_parser.models import (
 
 
 def test_cloudfront_entry(base_cloudfront_log_entry, cloudfront_entry, cookie_zip_code):
-    base_cloudfront_log_entry.cookie = cookie_zip_code
+    replaced = dataclasses.replace(base_cloudfront_log_entry, cookie=cookie_zip_code)
     entry = CloudFrontWebDistributionLogEntry(
         **dataclasses.asdict(parse_entry(cloudfront_entry, LogType.CloudFront))
     )
-    assert entry == base_cloudfront_log_entry
+    assert entry == replaced
     assert isinstance(entry.timestamp, datetime.datetime) is True
     assert entry.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
@@ -25,13 +25,13 @@ def test_cloudfront_entry(base_cloudfront_log_entry, cloudfront_entry, cookie_zi
 def test_cloudfront_entry_broken_cookie(
     base_cloudfront_log_entry, cloudfront_entry_broken_cookie, cookie_empty
 ):
-    base_cloudfront_log_entry.cookie = cookie_empty
+    replaced = dataclasses.replace(base_cloudfront_log_entry, cookie=cookie_empty)
     entry = CloudFrontWebDistributionLogEntry(
         **dataclasses.asdict(
             parse_entry(cloudfront_entry_broken_cookie, LogType.CloudFront)
         )
     )
-    assert entry == base_cloudfront_log_entry
+    assert entry == replaced
     assert isinstance(entry.timestamp, datetime.datetime) is True
     assert entry.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc
@@ -41,13 +41,13 @@ def test_cloudfront_entry_broken_cookie(
 def test_cloudfront_entry_cookie_with_encoding(
     base_cloudfront_log_entry, cloudfront_entry_cookie_with_encoding, cookie_with_space
 ):
-    base_cloudfront_log_entry.cookie = cookie_with_space
+    replaced = dataclasses.replace(base_cloudfront_log_entry, cookie=cookie_with_space)
     entry = CloudFrontWebDistributionLogEntry(
         **dataclasses.asdict(
             parse_entry(cloudfront_entry_cookie_with_encoding, LogType.CloudFront)
         )
     )
-    assert entry == base_cloudfront_log_entry
+    assert entry == replaced
     assert isinstance(entry.timestamp, datetime.datetime) is True
     assert entry.timestamp == datetime.datetime(
         2014, 5, 23, 1, 13, 11, tzinfo=datetime.timezone.utc

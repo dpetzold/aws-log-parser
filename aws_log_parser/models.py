@@ -1,12 +1,12 @@
 import datetime
 import typing
-
 from enum import (
     Enum,
     auto,
 )
 
-from dataclasses import dataclass
+from dataclasses_json import DataClassJsonMixin, config, dataclass_json
+from dataclasses import dataclass, field
 from http import cookies
 
 
@@ -75,11 +75,12 @@ class LoadBalancerErrorReason(Enum):
     LambdaUnhandled = auto()
 
 
-class LogEntry:
+@dataclass(frozen=True)
+class LogEntry(DataClassJsonMixin):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClassicLoadBalancerLogEntry(LogEntry):
     timestamp: datetime.datetime
     elb: str
@@ -105,7 +106,7 @@ class ClassicLoadBalancerLogEntry(LogEntry):
             return self.client.ip
 
 
-@dataclass
+@dataclass(frozen=True)
 class LoadBalancerLogEntry(LogEntry):
     type: HttpType
     timestamp: datetime.datetime
@@ -134,10 +135,20 @@ class LoadBalancerLogEntry(LogEntry):
     error_reason: typing.Optional[LoadBalancerErrorReason]
 
 
-@dataclass
-class CloudFrontWebDistributionLogEntry(LogEntry):
+@dataclass(frozen=True)
+class CloudFrontLogEntry(LogEntry):
     date: datetime.date
     time: datetime.time
+
+    @property
+    def timestamp(self):
+        return datetime.datetime.fromisoformat(
+            f"{self.date}T{self.time}",
+        ).replace(tzinfo=datetime.timezone.utc)
+
+
+@dataclass(frozen=True)
+class CloudFrontWebDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     sent_bytes: int
     client_ip: str
@@ -162,17 +173,9 @@ class CloudFrontWebDistributionLogEntry(LogEntry):
     protocol_version: str
     fle_encrypted_fields: str = ""
 
-    @property
-    def timestamp(self):
-        return datetime.datetime.fromisoformat(
-            f"{self.date}T{self.time}",
-        ).replace(tzinfo=datetime.timezone.utc)
 
-
-@dataclass
-class CloudFrontRTMPDistributionLogEntry(LogEntry):
-    date: str
-    time: str
+@dataclass(frozen=True)
+class CloudFrontRTMPDistributionLogEntry(CloudFrontLogEntry):
     edge_location: str
     client_ip: str
     event: str
@@ -186,35 +189,147 @@ class CloudFrontRTMPDistributionLogEntry(LogEntry):
     user_agent: str
 
 
+# Begin WAF
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryNonTerminatingMatchingRules:
+    action: str
+    ruleId: str
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryExcludedRules:
+    exclusionType: str
+    ruleId: str
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryRuleGroup:
+    ruleGroupId: str
+    terminatingRule: typing.Optional[str]
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRules]
+    excludedRules: typing.List[WafLogEntryExcludedRules]
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryRateGroup:
+    rateBasedRuleId: str
+    limitKey: str
+    maxRateAllowed: int
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryNonTerminatingMatchingRule:
+    action: str
+    ruleId: str
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryHttpRequestHeader:
+    name: str
+    value: str
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntryHttpRequest:
+    clientIp: str
+    country: str
+    headers: typing.List[WafLogEntryHttpRequestHeader]
+    uri: str
+    args: str
+    httpVersion: str
+    httpMethod: str
+    requestId: str
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class WafLogEntry(LogEntry):
+    timestamp: datetime.datetime = field(
+        metadata=config(
+            encoder=lambda t: datetime.datetime.timestamp(t) * 1000,
+            decoder=lambda t: datetime.datetime.utcfromtimestamp(t / 1000),
+        )
+    )
+    formatVersion: int
+    webaclId: str
+    terminatingRuleId: str
+    terminatingRuleType: str
+    action: str
+    httpSourceName: str
+    httpSourceId: str
+    httpRequest: WafLogEntryHttpRequest
+    ruleGroupList: typing.List[WafLogEntryRuleGroup] = field(default_factory=list)
+    rateBasedRuleList: typing.List[WafLogEntryRateGroup] = field(default_factory=list)
+    nonTerminatingMatchingRules: typing.List[
+        WafLogEntryNonTerminatingMatchingRule
+    ] = field(default_factory=list)
+
+    @property
+    def client_ip(self):
+        return self.httpRequest.clientIp
+
+
+class LogFormatType(str, Enum):
+    CSV = "CSV"
+    JSON = "JSON"
+
+
 @dataclass
 class LogFormat:
     name: str
     model: typing.Type[LogEntry]
-    delimiter: str
+    type: LogFormatType
+    delimiter: typing.Optional[str] = None
+
+
+def LogFormatCsv(**kwargs):
+    return LogFormat(type=LogFormatType.CSV, **kwargs)
+
+
+def LogFormatJson(**kwargs):
+    return LogFormat(type=LogFormatType.JSON, **kwargs)
+
+
+def LogFormatCsvSpaced(**kwargs):
+    return LogFormatCsv(delimiter=" ", **kwargs)
+
+
+def LogFormatCsvTabbed(**kwargs):
+    return LogFormatCsv(delimiter="\t", **kwargs)
 
 
 @dataclass
 class LogType:
-    ClassicLoadBalancer: LogFormat = LogFormat(
+    ClassicLoadBalancer: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
         name="ClassicLoadBalancer",
         model=ClassicLoadBalancerLogEntry,
-        delimiter=" ",
     )
 
-    LoadBalancer: LogFormat = LogFormat(
+    LoadBalancer: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
         name="LoadBalancer",
         model=LoadBalancerLogEntry,
-        delimiter=" ",
     )
 
-    CloudFront: LogFormat = LogFormat(
+    CloudFront: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFront",
         model=CloudFrontWebDistributionLogEntry,
-        delimiter="\t",
     )
 
-    CloudFrontRTMP: LogFormat = LogFormat(
+    CloudFrontRTMP: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFrontRTMP",
         model=CloudFrontRTMPDistributionLogEntry,
-        delimiter="\t",
+    )
+
+    WAF: typing.ClassVar[LogFormat] = LogFormatJson(
+        name="WAF",
+        model=WafLogEntry,
     )

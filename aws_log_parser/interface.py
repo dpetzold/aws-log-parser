@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from .aws import AwsClient
 from .models import (
     LogFormat,
+    LogFormatType,
 )
 from .util import batcher
 
@@ -19,7 +20,6 @@ from .parser import to_python
 
 @dataclass
 class AwsLogParser:
-
     log_type: LogFormat
 
     # Optional
@@ -44,17 +44,6 @@ class AwsLogParser:
             for plugin in self.plugins
         ]
 
-    def _parse(self, content: typing.List[str]):
-        model_fields = fields(self.log_type.model)
-        for row in csv.reader(content, delimiter=self.log_type.delimiter):
-            if not row[0].startswith("#"):
-                yield self.log_type.model(  # type: ignore
-                    *[
-                        to_python(value, field)
-                        for value, field in zip(row, model_fields)
-                    ]
-                )
-
     def load_plugin(self, plugin, plugin_path):
         plugin_module, plugin_classs = plugin.split(":")
         spec = importlib.util.spec_from_file_location(
@@ -72,8 +61,29 @@ class AwsLogParser:
         for batch in batcher(log_entries, plugin.batch_size):
             yield from plugin.augment(batch)
 
+    def parse_csv(self, content):
+        model_fields = fields(self.log_type.model)
+        assert self.log_type.delimiter
+        for row in csv.reader(content, delimiter=self.log_type.delimiter):
+            if not row[0].startswith("#"):
+                yield self.log_type.model(
+                    *[
+                        to_python(value, field)
+                        for value, field in zip(row, model_fields)
+                    ]
+                )
+
+    def parse_json(self, records):
+        for record in records:
+            yield self.log_type.model.from_dict(record)  # type: ignore
+
     def parse(self, content):
-        log_entries = self._parse(content)
+        parse_func = (
+            self.parse_json
+            if self.log_type.type == LogFormatType.JSON
+            else self.parse_csv
+        )
+        log_entries = parse_func(content)
         for plugin in self.plugins_loaded:
             log_entries = self.run_plugin(plugin, log_entries)
         yield from log_entries
@@ -157,6 +167,5 @@ class AwsLogParser:
                 parsed.path.lstrip("/"),
                 endswith=self.file_suffix,
             )
-
         else:
             raise ValueError(f"Unknown scheme {parsed.scheme}")

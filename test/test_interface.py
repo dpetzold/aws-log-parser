@@ -65,7 +65,6 @@ def test_parse_files(cloudfront_parser):
 
 
 def test_parse_s3(monkeypatch, cloudfront_parser):
-
     monkeypatch.setattr(S3Service, "client", MockS3Client())
 
     entries = cloudfront_parser.read_s3(

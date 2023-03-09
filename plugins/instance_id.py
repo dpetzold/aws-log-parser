@@ -16,7 +16,6 @@ class AwsPluginInstanceId(AwsPluginBase):
         return self.aws_client.ec2_client
 
     def instance_id(self, ni):
-
         if ni["InterfaceType"] == "branch":
             ecs_service = self.aws_client.get_tag(ni["TagSet"], "aws:ecs:serviceName")
             return f"ecs:{ecs_service}"
@@ -36,7 +35,6 @@ class AwsPluginInstanceId(AwsPluginBase):
         self._cache.update({ni["PrivateIpAddress"]: self.instance_id(ni) for ni in nis})
 
     def augment(self, log_entries):
-
         instance_ids = self.lookup({log_entry.client_ip for log_entry in log_entries})
 
         for log_entry in log_entries:

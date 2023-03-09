@@ -1,12 +1,11 @@
 import datetime
+import json
 import pytest
 
 
 from aws_log_parser import AwsLogParser
 from aws_log_parser.models import (
     CloudFrontWebDistributionLogEntry,
-    # LoadBalancerLogEntry,
-    # ClassicLoadBalancerLogEntry,
 )
 
 
@@ -59,8 +58,17 @@ def base_cloudfront_log_entry():
     )
 
 
+def fixture(shared_datadir, fixture_name):
+    return (shared_datadir / fixture_name).open()
+
+
 def log_entry(shared_datadir, test_name):
-    return (shared_datadir / f"{test_name}.csv").open()
+    return fixture(shared_datadir, f"{test_name}.csv")
+
+
+@pytest.fixture
+def waf_entry_dict(shared_datadir):
+    return json.loads(fixture(shared_datadir, "waf_log.json").read())
 
 
 @pytest.fixture
