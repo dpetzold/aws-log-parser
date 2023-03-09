@@ -16,8 +16,6 @@ from aws_log_parser.models import (
     WafLogEntryHttpRequestHeader,
 )
 
-from pprint import pprint
-
 
 @pytest.fixture
 def base_waf_entry():
@@ -83,7 +81,5 @@ def base_waf_entry():
 
 def test_waf_entry(waf_entry_dict, base_waf_entry):
     waf_entry = typing.cast(WafLogEntry, parse_entry([waf_entry_dict], LogType.WAF))
-    pprint(waf_entry)
-    pprint(waf_entry.schema())
     assert isinstance(waf_entry.timestamp, datetime.datetime) is True
     assert waf_entry == base_waf_entry
