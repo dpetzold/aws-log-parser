@@ -210,7 +210,7 @@ See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models
 ### WAF
 
 ```python
-    return WafLogEntry(
+    WafLogEntry(
         timestamp=datetime.datetime(2018, 8, 8, 0, 44, 30, 589000),
         formatVersion=1,
         webaclId="385cb038-3a6f-4f2f-ac64-09ab912af590",
