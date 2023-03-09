@@ -261,11 +261,11 @@ See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models
                 WafLogEntryHttpRequestHeader(name="User-Agent", value="curl/7.51.2"),
                 WafLogEntryHttpRequestHeader(name="Accept", value="*/*"),
             ],
-            uri="REDACTED",
+            uri="/",
             args="usernam=abc",
             httpVersion="HTTP/1.1",
             httpMethod="GET",
-            requestId="cloud front Request " "id",
+            requestId="CloudFrontRequestId",
         ),
     )
 ```
