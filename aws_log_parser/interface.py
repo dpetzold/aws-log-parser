@@ -75,7 +75,7 @@ class AwsLogParser:
 
     def parse_json(self, records):
         for record in records:
-            yield self.log_type.model.from_dict(record)  # type: ignore
+            yield self.log_type.model.from_json(record)  # type: ignore
 
     def parse(self, content):
         parse_func = (
