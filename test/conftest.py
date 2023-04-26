@@ -67,8 +67,8 @@ def log_entry(shared_datadir, test_name):
 
 
 @pytest.fixture
-def waf_entry_dict(shared_datadir):
-    return json.loads(fixture(shared_datadir, "waf_log.json").read())
+def waf_entry_json(shared_datadir):
+    return fixture(shared_datadir, "waf_log.json").read()
 
 
 @pytest.fixture
