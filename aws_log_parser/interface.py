@@ -120,7 +120,7 @@ class AwsLogParser:
             for p in path.glob(f"**/*{self.file_suffix}"):
                 yield from self.read_file(p)
 
-    def read_s3(self, bucket, prefix, endswith=None):
+    def read_s3(self, bucket, prefix, filter=None, endswith=None):
         """
         Yield parsed log entries from the given s3 url.
         Low level function used by ``parse_url``.
@@ -133,10 +133,15 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         yield from self.parse(
-            self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
+            self.aws_client.s3_service.read_keys(
+                bucket,
+                prefix,
+                filter=filter,
+                endswith=endswith,
+            )
         )
 
-    def read_url(self, url):
+    def read_url(self, url, filter=None):
         """
         Yield parsed log entries from the given url. The file:// and s3://
         schemes are currently supported.
@@ -165,6 +170,7 @@ class AwsLogParser:
             yield from self.read_s3(
                 parsed.netloc,
                 parsed.path.lstrip("/"),
+                filter=filter,
                 endswith=self.file_suffix,
             )
         else:

@@ -27,8 +27,7 @@ class S3Service(AwsService):
         return sorted(items, key=lambda x: x[sort_key], reverse=reverse)
 
     def read_key(self, bucket, key, endswith=None):
-        if self.aws_client.verbose:
-            print(f"Reading s3://{bucket}/{key}")
+        print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
         if endswith == ".gz":
             with gzip.GzipFile(fileobj=contents["Body"]) as _gz:
@@ -36,9 +35,16 @@ class S3Service(AwsService):
         else:
             yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
 
-    def read_keys(self, bucket, prefix, endswith=None):
+    def read_keys(self, bucket, prefix, filter=None, endswith=None):
+        print(f"Reading s3://{bucket}/{prefix}")
         for file in self.list_files(bucket, prefix, "LastModified"):
-            if endswith and not file["Key"].endswith(endswith):
+            key = file["Key"]
+            if endswith and not key.endswith(endswith):
+                print(f"skipping {key} suffix")
                 continue
 
-            yield from self.read_key(bucket, file["Key"], endswith)
+            if filter and filter not in key:
+                print(f"skipping {key} filter")
+                continue
+
+            yield from self.read_key(bucket, key, endswith)
