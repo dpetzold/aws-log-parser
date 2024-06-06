@@ -1,5 +1,4 @@
 import datetime
-import json
 import pytest
 
 
@@ -104,6 +103,11 @@ def loadbalancer_https_entry(shared_datadir):
 @pytest.fixture
 def loadbalancer_http2_entry(shared_datadir):
     return log_entry(shared_datadir, loadbalancer_http2_entry.__name__)
+
+
+@pytest.fixture
+def loadbalancer_http2_entry_auth_error(shared_datadir):
+    return log_entry(shared_datadir, loadbalancer_http2_entry_auth_error.__name__)
 
 
 @pytest.fixture

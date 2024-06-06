@@ -249,6 +249,50 @@ def test_loadbalancer_http2_entry(loadbalancer_http2_entry):
     )
 
 
+def test_loadbalancer_http2_entry_auth_error(loadbalancer_http2_entry_auth_error):
+    entry = parse_entry(loadbalancer_http2_entry_auth_error, LogType.LoadBalancer)
+    assert entry == LoadBalancerLogEntry(
+        type=HttpType.H2,
+        timestamp=datetime.datetime(
+            2018, 7, 2, 22, 23, 0, 186641, tzinfo=datetime.timezone.utc
+        ),
+        elb="app/my-loadbalancer/50dc6c495c0c9188",
+        client=Host(
+            ip="192.168.131.39",
+            port=2817,
+        ),
+        target=None,
+        request_processing_time=-1.0,
+        target_processing_time=-1.0,
+        response_processing_time=-1.0,
+        elb_status_code=401,
+        target_status_code=None,
+        received_bytes=4956,
+        sent_bytes=616,
+        http_request=HttpRequest(
+            method="GET",
+            url="https://example.com:443/oauth2/idpresponse?code=XXXXX",
+            path="/oauth2/idpresponse",
+            query={"code": ["XXXXX"]},
+            protocol="HTTP/2.0",
+        ),
+        user_agent="curl/7.46.0",
+        ssl_cipher="TLS_AES_128_GCM_SHA256",
+        ssl_protocol="TLSv1.3",
+        target_group_arn=None,
+        trace_id="Root=1-665d7a41-032e7e1d59b8e8043f88b4dc",
+        domain_name="example.com",
+        chosen_cert_arn="arn:aws:acm:us-east-2:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+        matched_rule_priority=-1,
+        request_creation_time=datetime.datetime(
+            2018, 7, 2, 22, 22, 48, 364000, tzinfo=datetime.timezone.utc
+        ),
+        actions_executed=["authenticate"],
+        redirect_url=None,
+        error_reason=LoadBalancerErrorReason.AuthInvalidAWSALBAuthNonce,
+    )
+
+
 def test_loadbalancer_websockets_entry(loadbalancer_websockets_entry):
     entry = parse_entry(loadbalancer_websockets_entry, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(

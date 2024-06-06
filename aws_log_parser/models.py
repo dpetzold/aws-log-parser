@@ -36,6 +36,7 @@ class HttpRequest:
 
 
 class LoadBalancerErrorReason(Enum):
+    AuthInvalidAWSALBAuthNonce = auto()
     AuthInvalidCookie = auto()
     AuthInvalidGrantError = auto()
     AuthInvalidIdToken = auto()
