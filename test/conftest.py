@@ -111,6 +111,11 @@ def loadbalancer_http2_entry_auth_error(shared_datadir):
 
 
 @pytest.fixture
+def loadbalancer_http2_entry_auth_missing(shared_datadir):
+    return log_entry(shared_datadir, loadbalancer_http2_entry_auth_missing.__name__)
+
+
+@pytest.fixture
 def loadbalancer_websockets_entry(shared_datadir):
     return log_entry(shared_datadir, loadbalancer_websockets_entry.__name__)
 

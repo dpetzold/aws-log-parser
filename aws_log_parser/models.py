@@ -43,6 +43,7 @@ class LoadBalancerErrorReason(Enum):
     AuthInvalidStateParam = auto()
     AuthInvalidTokenResponse = auto()
     AuthInvalidUserinfoResponse = auto()
+    AuthMissingAWSALBAuthNonce = auto()
     AuthMissingCodeParam = auto()
     AuthMissingHostHeader = auto()
     AuthMissingStateParam = auto()
@@ -125,7 +126,7 @@ class LoadBalancerLogEntry(LogEntry):
     user_agent: typing.Optional[str]
     ssl_cipher: typing.Optional[str]
     ssl_protocol: typing.Optional[str]
-    target_group_arn: str
+    target_group_arn: typing.Optional[str]
     trace_id: str
     domain_name: typing.Optional[str]
     chosen_cert_arn: typing.Optional[str]
