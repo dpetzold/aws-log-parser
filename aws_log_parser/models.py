@@ -43,6 +43,7 @@ class LoadBalancerErrorReason(Enum):
     AuthInvalidStateParam = auto()
     AuthInvalidTokenResponse = auto()
     AuthInvalidUserinfoResponse = auto()
+    AuthMissingAWSALBAuthNonce = auto()
     AuthMissingCodeParam = auto()
     AuthMissingHostHeader = auto()
     AuthMissingStateParam = auto()
