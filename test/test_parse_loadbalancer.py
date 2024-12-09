@@ -292,8 +292,9 @@ def test_loadbalancer_http2_entry_auth_error(loadbalancer_http2_entry_auth_error
         error_reason=LoadBalancerErrorReason.AuthInvalidAWSALBAuthNonce,
     )
 
-def test_loadbalancer_http2_entry_auth_missing(loadbalancer_http2_entry_auth_error):
-    entry = parse_entry(loadbalancer_http2_entry_auth_error, LogType.LoadBalancer)
+
+def test_loadbalancer_http2_entry_auth_missing(loadbalancer_http2_entry_auth_missing):
+    entry = parse_entry(loadbalancer_http2_entry_auth_missing, LogType.LoadBalancer)
     assert entry == LoadBalancerLogEntry(
         type=HttpType.H2,
         timestamp=datetime.datetime(
