@@ -103,8 +103,7 @@ class AwsLogParser:
             path = Path(path)
         if self.verbose:
             print(f"Reading file://{path}")
-        with path.open("rb") as fh:
-            yield from self.parse(FileIterator(fh, path.suffix == ".gz"))
+        yield from self.parse(FileIterator(path, gzipped=path.suffix == ".gz"))
 
     def read_files(self, pathname):
         """

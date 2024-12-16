@@ -30,7 +30,10 @@ class S3Service(AwsService):
         if self.aws_client.verbose:
             print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
-        yield from FileIterator(BytesIO(contents["Body"]), endswith == ".gz")
+        yield from FileIterator(
+            fileobj=BytesIO(contents["Body"].iter_lines()),
+            gzipped=endswith == ".gz",
+        )
 
     def read_keys(self, bucket, prefix, endswith=None):
         for file in self.list_files(bucket, prefix, "LastModified"):
