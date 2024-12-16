@@ -67,8 +67,14 @@ def test_parse_file(cloudfront_parser):
     assert len(list(entries)) == 6
 
 
-def test_parse_files(cloudfront_parser):
-    entries = cloudfront_parser.read_files("test/data")
+def test_parse_files():
+    parser = AwsLogParser(
+        log_type=LogType.CloudFront,
+        verbose=True,
+        regex_filter=r"^cloudfront",
+    )
+
+    entries = parser.read_files("test/data")
     assert len(list(entries)) == 6
 
 

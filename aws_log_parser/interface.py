@@ -2,6 +2,7 @@ import csv
 import typing
 import importlib
 import importlib.util
+import re
 import sys
 
 from dataclasses import dataclass, fields, field
@@ -27,6 +28,7 @@ class AwsLogParser:
     region: typing.Optional[str] = None
     profile: typing.Optional[str] = None
     file_suffix: str = ".log"
+    regex_filter: typing.Optional[str] = None
     verbose: bool = False
 
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
@@ -115,12 +117,18 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
-        path = Path(pathname)
-        if path.is_dir():
-            for p in path.glob(f"**/*{self.file_suffix}"):
-                yield from self.read_file(p)
+        base_path = Path(pathname)
+        if base_path.is_dir():
+            if self.regex_filter:
+                reo = re.compile(self.regex_filter)
+                for path in base_path.iterdir():
+                    if reo.match(path.name):
+                        yield from self.read_file(path)
+            else:
+                for path in base_path.glob(f"**/*{self.file_suffix}"):
+                    yield from self.read_file(path)
         else:
-            yield from self.read_file(path)
+            yield from self.read_file(base_path)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
@@ -135,7 +143,12 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         yield from self.parse(
-            self.aws_client.s3_service.read_keys(bucket, prefix, endswith=endswith)
+            self.aws_client.s3_service.read_keys(
+                bucket,
+                prefix,
+                file_suffix=endswith if endswith else self.file_suffix,
+                regex_filter=self.regex_filter,
+            )
         )
 
     def read_url(self, url):
@@ -167,7 +180,6 @@ class AwsLogParser:
             yield from self.read_s3(
                 parsed.netloc,
                 parsed.path.lstrip("/"),
-                endswith=self.file_suffix,
             )
         else:
             raise ValueError(f"Unknown scheme {parsed.scheme}")
