@@ -1,3 +1,5 @@
+import re
+
 from dataclasses import dataclass
 from io import BytesIO
 
@@ -26,18 +28,22 @@ class S3Service(AwsService):
 
         return sorted(items, key=lambda x: x[sort_key], reverse=reverse)
 
-    def read_key(self, bucket, key, endswith=None):
+    def read_key(self, bucket, key):
         if self.aws_client.verbose:
             print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
         yield from FileIterator(
             fileobj=BytesIO(contents["Body"].iter_lines()),
-            gzipped=endswith == ".gz",
+            gzipped=key.endswith(".gz"),
         )
 
-    def read_keys(self, bucket, prefix, endswith=None):
+    def read_keys(self, bucket, prefix, endswith=None, regex_filter=None):
+        reo = re.compile(regex_filter) if regex_filter else None
         for file in self.list_files(bucket, prefix, "LastModified"):
             if endswith and not file["Key"].endswith(endswith):
                 continue
 
-            yield from self.read_key(bucket, file["Key"], endswith)
+            if reo and not reo.match(file):
+                continue
+
+            yield from self.read_key(bucket, file["Key"])
