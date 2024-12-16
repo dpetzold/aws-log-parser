@@ -1,11 +1,11 @@
-import gzip
-
 from dataclasses import dataclass
+from io import BytesIO
 
 from .client import (
     AwsClient,
     AwsService,
 )
+from ..io import FileIterator
 
 
 @dataclass
@@ -30,11 +30,7 @@ class S3Service(AwsService):
         if self.aws_client.verbose:
             print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
-        if endswith == ".gz":
-            with gzip.GzipFile(fileobj=contents["Body"]) as _gz:
-                yield from [line for line in _gz.read().decode("utf-8").splitlines()]
-        else:
-            yield from [line.decode("utf-8") for line in contents["Body"].iter_lines()]
+        yield from FileIterator(BytesIO(contents["Body"]), endswith == ".gz")
 
     def read_keys(self, bucket, prefix, endswith=None):
         for file in self.list_files(bucket, prefix, "LastModified"):

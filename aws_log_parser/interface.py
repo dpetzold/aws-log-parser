@@ -3,13 +3,13 @@ import typing
 import importlib
 import importlib.util
 import sys
-import gzip
 
 from dataclasses import dataclass, fields, field
 from pathlib import Path
 from urllib.parse import urlparse
 
 from .aws import AwsClient
+from .io import FileIterator
 from .models import (
     LogFormat,
     LogFormatType,
@@ -89,12 +89,6 @@ class AwsLogParser:
             log_entries = self.run_plugin(plugin, log_entries)
         yield from log_entries
 
-    def yield_gzipped(self, fh):
-        yield from [line for line in fh.read().decode("utf-8").splitlines()]
-
-    def yield_plain(self, fh):
-        yield from fh.readlines()
-
     def read_file(self, path):
         """
         Yield parsed log entries from the given file.
@@ -107,11 +101,8 @@ class AwsLogParser:
         """
         if self.verbose:
             print(f"Reading file://{path}")
-        open_func = gzip.open if path.suffix == ".gz" else open
-        open_mode = "rb" if path.suffix == ".gz" else "r"
-        read_func = self.yield_gzipped if path.suffix == ".gz" else self.yield_plain
-        with open_func(path, open_mode) as log_data:
-            yield from self.parse(read_func(log_data))
+        with open(path, "rb") as fh:
+            yield from self.parse(FileIterator(fh, path.suffix == ".gz"))
 
     def read_files(self, pathname):
         """
