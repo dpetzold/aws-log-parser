@@ -99,9 +99,11 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
+        if not isinstance(path, Path):
+            path = Path(path)
         if self.verbose:
             print(f"Reading file://{path}")
-        with open(path, "rb") as fh:
+        with path.open("rb") as fh:
             yield from self.parse(FileIterator(fh, path.suffix == ".gz"))
 
     def read_files(self, pathname):

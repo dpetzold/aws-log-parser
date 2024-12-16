@@ -11,13 +11,8 @@ class FileIterator:
         yield from [line for line in fh.read().decode("utf-8").splitlines()]
 
     def yield_plain(self, fh):
-        yield from [line.decode("utf-8") for line in fh.iter_lines()]
+        yield from [line.decode("utf-8") for line in fh]
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.gzipped:
-            yield from self.yield_gzipped(self.fileobj)
-        else:
-            yield from self.yield_plain(self.fileobj)
+        yield_func = self.yield_gzipped if self.gzipped else self.yield_plain
+        yield from yield_func(self.fileobj)
