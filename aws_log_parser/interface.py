@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .aws import AwsClient
+from .io import FileIterator
 from .models import (
     LogFormat,
     LogFormatType,
@@ -98,10 +99,11 @@ class AwsLogParser:
         :return: Parsed log entries.
         :rtype: Dependant on log_type.
         """
+        if not isinstance(path, Path):
+            path = Path(path)
         if self.verbose:
             print(f"Reading file://{path}")
-        with open(path) as log_data:
-            yield from self.parse(log_data.readlines())
+        yield from self.parse(FileIterator(path, gzipped=path.suffix == ".gz"))
 
     def read_files(self, pathname):
         """
@@ -114,11 +116,11 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         path = Path(pathname)
-        if path.is_file():
-            yield from self.read_file(path)
-        else:
+        if path.is_dir():
             for p in path.glob(f"**/*{self.file_suffix}"):
                 yield from self.read_file(p)
+        else:
+            yield from self.read_file(path)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
