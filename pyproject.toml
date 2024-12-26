@@ -1,10 +1,19 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+[tool.poetry]
+name = "aws-log-parser"
+version = "3.0.0"
+description = "Parse AWS CloudFront and LoadBalancer logs into Python dataclasses."
+authors = ["Derrick Petzold <github@petzold.io>"]
+license = "Apache"
+readme = "README.md"
+packages = [{include = "aws_log_parser"}]
 
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
 include = [
@@ -16,9 +25,6 @@ exclude = [
     "**/__pycache__",
     "**/.eggs"
 ]
-
-venv = "aws-log-parser-3.10.0"
-venvPath = "/home/derrick/.pyenv/versions/3.10.0/envs"
 
 reportMissingImports = true
 reportMissingTypeStubs = false
