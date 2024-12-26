@@ -146,7 +146,7 @@ class AwsLogParser:
             self.aws_client.s3_service.read_keys(
                 bucket,
                 prefix,
-                file_suffix=endswith if endswith else self.file_suffix,
+                endswith=endswith if endswith else self.file_suffix,
                 regex_filter=self.regex_filter,
             )
         )

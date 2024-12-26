@@ -71,10 +71,10 @@ def test_parse_files():
     parser = AwsLogParser(
         log_type=LogType.CloudFront,
         verbose=True,
-        regex_filter=r"^cloudfront",
+        regex_filter=r"^cloudfront.*\.csv",
     )
     entries = parser.read_files("test/data")
-    assert len(list(entries)) == 6
+    assert len(list(entries)) == 4
 
 
 def test_parse_s3(monkeypatch, cloudfront_parser, gzipped=False):
