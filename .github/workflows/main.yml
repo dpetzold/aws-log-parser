@@ -24,4 +24,4 @@ jobs:
         run: |
           pipx install poetry
           poetry install
-          pytest
+          poetry run pytest
