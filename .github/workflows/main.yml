@@ -22,6 +22,7 @@ jobs:
           src: "./aws_log_parser"
       - name: Test with pytest
         run: |
+          pip install pipx
           pipx install poetry
           poetry install
           poetry run pytest
