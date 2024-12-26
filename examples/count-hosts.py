@@ -30,7 +30,19 @@ def main():
     parser.add_argument(
         "--log-type",
         type=lambda x: getattr(LogType, x),
+        default="CloudFront",
         help="The the log type.",
+    )
+
+    parser.add_argument(
+        "--file-suffix",
+        default=".log",
+        help="The file suffix to filter on.",
+    )
+
+    parser.add_argument(
+        "--regex-filter",
+        help="The regex filter.",
     )
 
     parser.add_argument(
@@ -43,6 +55,12 @@ def main():
         help="The aws region to use.",
     )
 
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose mode.",
+    )
+
     args = parser.parse_args()
 
     ip_attr = "client_ip" if args.log_type == LogType.CloudFront else "client.ip"
@@ -51,6 +69,9 @@ def main():
         log_type=args.log_type,
         profile=args.profile,
         region=args.region,
+        verbose=args.verbose,
+        file_suffix=args.file_suffix,
+        regex_filter=args.regex_filter,
     ).read_url(args.url)
 
     count_ips(entries, ip_attr)

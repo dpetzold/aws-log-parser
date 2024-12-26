@@ -122,7 +122,7 @@ class AwsLogParser:
             if self.regex_filter:
                 reo = re.compile(self.regex_filter)
                 for path in base_path.iterdir():
-                    if reo.match(path.name):
+                    if reo.match(path.name) and path.is_file():
                         yield from self.read_file(path)
             else:
                 for path in base_path.glob(f"**/*{self.file_suffix}"):
