@@ -23,7 +23,7 @@ jobs:
       - name: Lint with ruff
         uses: astral-sh/ruff-action@v2
         with:
-          src: "./src"
+          src: "./aws_log_parser"
       - name: Test with pytest
         run: |
           pytest
