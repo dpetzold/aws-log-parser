@@ -114,11 +114,11 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         path = Path(pathname)
-        if path.is_file():
-            yield from self.read_file(path)
+        if path.is_dir():
+            for _path in path.glob(f"**/*{self.file_suffix}"):
+                yield from self.read_file(_path)
         else:
-            for p in path.glob(f"**/*{self.file_suffix}"):
-                yield from self.read_file(p)
+            yield from self.read_file(path)
 
     def read_s3(self, bucket, prefix, endswith=None):
         """
