@@ -73,7 +73,6 @@ def test_parse_files():
         verbose=True,
         regex_filter=r"^cloudfront",
     )
-
     entries = parser.read_files("test/data")
     assert len(list(entries)) == 6
 
