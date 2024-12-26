@@ -16,14 +16,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          pipx install poetry
-          poetry install
       - name: Lint with ruff
         uses: astral-sh/ruff-action@v2
         with:
           src: "./aws_log_parser"
       - name: Test with pytest
         run: |
+          pipx install poetry
+          poetry install
           pytest
