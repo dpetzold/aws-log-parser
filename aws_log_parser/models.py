@@ -271,9 +271,9 @@ class WafLogEntry(LogEntry):
     httpRequest: WafLogEntryHttpRequest
     ruleGroupList: typing.List[WafLogEntryRuleGroup] = field(default_factory=list)
     rateBasedRuleList: typing.List[WafLogEntryRateGroup] = field(default_factory=list)
-    nonTerminatingMatchingRules: typing.List[
-        WafLogEntryNonTerminatingMatchingRule
-    ] = field(default_factory=list)
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule] = (
+        field(default_factory=list)
+    )
 
     @property
     def client_ip(self):
