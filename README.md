@@ -66,6 +66,14 @@ schemes are supported.
 GZipped LoadBalancer logs are supported by passing `file_suffix=".gz"` to
 the AwsLogParser initilizer.
 
+You can filter files based on a regex by passing in `regex_filter` to the
+AwsLogParser. For example:
+
+    parser = AwsLogParser(
+        log_type=LogType.CloudFront,
+        regex_filter='20241226',
+    )
+
 S3:
 
 ```python
