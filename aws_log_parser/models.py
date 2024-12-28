@@ -258,7 +258,10 @@ class WafLogEntry(LogEntry):
     timestamp: datetime.datetime = field(
         metadata=config(
             encoder=lambda t: datetime.datetime.timestamp(t) * 1000,
-            decoder=lambda t: datetime.datetime.utcfromtimestamp(t / 1000),
+            decoder=lambda t: datetime.datetime.fromtimestamp(
+                t / 1000,
+                datetime.timezone.utc,
+            ),
         )
     )
     formatVersion: int
