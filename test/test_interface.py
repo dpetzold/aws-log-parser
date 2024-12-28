@@ -14,12 +14,16 @@ from aws_log_parser import (
 from aws_log_parser.aws.s3 import S3Service
 
 
+@dataclass
 class MockPaginator:
-    def paginate(self, **kwargs):
+    gzipped: bool = False
+
+    def paginate(self, **_):
+        suffix = ".gz" if self.gzipped else ""
         yield {
             "Contents": [
                 {
-                    "Key": "cloudfront-multiple.log",
+                    "Key": f"cloudfront-multiple.log{suffix}",
                     "LastModified": datetime.datetime(
                         2021, 11, 28, 3, 31, 56, tzinfo=tzutc()
                     ),
@@ -36,15 +40,19 @@ class MockStreamingFile:
     filename: str
 
     def iter_lines(self):
-        return open(self.filename, "rb").readlines()
+        return open(self.filename, "rb").read()
 
 
+@dataclass
 class MockS3Client:
-    def get_paginator(self, *args):
-        return MockPaginator()
+    gzipped: bool = False
 
-    def get_object(self, **kwargs):
-        return {"Body": MockStreamingFile("test/data/cloudfront-multiple.log")}
+    def get_paginator(self, *_):
+        return MockPaginator(self.gzipped)
+
+    def get_object(self, **_):
+        suffix = ".gz" if self.gzipped else ""
+        return {"Body": MockStreamingFile(f"test/data/cloudfront-multiple.log{suffix}")}
 
 
 @pytest.fixture
@@ -59,17 +67,37 @@ def test_parse_file(cloudfront_parser):
     assert len(list(entries)) == 6
 
 
-def test_parse_files(cloudfront_parser):
-    entries = cloudfront_parser.read_files("test/data")
+def test_parse_files():
+    parser = AwsLogParser(
+        log_type=LogType.CloudFront,
+        verbose=True,
+        regex_filter=r"^cloudfront.*\.csv",
+    )
+    entries = parser.read_files("test/data")
+    assert len(list(entries)) == 4
+
+
+def test_parse_s3(monkeypatch, cloudfront_parser, gzipped=False):
+    monkeypatch.setattr(S3Service, "client", MockS3Client(gzipped=gzipped))
+    suffix = ".gz" if gzipped else ""
+
+    entries = cloudfront_parser.read_s3(
+        "bucket",
+        "key",
+        endswith=suffix,
+    )
     assert len(list(entries)) == 6
 
 
-def test_parse_s3(monkeypatch, cloudfront_parser):
-    monkeypatch.setattr(S3Service, "client", MockS3Client())
+def test_parse_s3_gzipped(monkeypatch, cloudfront_parser):
+    gzipped = True
+    monkeypatch.setattr(S3Service, "client", MockS3Client(gzipped=gzipped))
+    suffix = ".gz" if gzipped else ""
 
     entries = cloudfront_parser.read_s3(
-        "aws-logs-test-data",
-        "cloudfront-multiple.log",
+        "bucket",
+        "key",
+        endswith=suffix,
     )
     assert len(list(entries)) == 6
 

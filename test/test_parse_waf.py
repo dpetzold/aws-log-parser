@@ -20,7 +20,16 @@ from aws_log_parser.models import (
 @pytest.fixture
 def base_waf_entry():
     return WafLogEntry(
-        timestamp=datetime.datetime(2018, 8, 8, 0, 44, 30, 589000),
+        timestamp=datetime.datetime(
+            2018,
+            8,
+            8,
+            0,
+            44,
+            30,
+            589000,
+            tzinfo=datetime.timezone.utc,
+        ),
         formatVersion=1,
         webaclId="385cb038-3a6f-4f2f-ac64-09ab912af590",
         terminatingRuleId="Default_Action",

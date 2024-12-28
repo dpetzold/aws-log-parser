@@ -258,7 +258,10 @@ class WafLogEntry(LogEntry):
     timestamp: datetime.datetime = field(
         metadata=config(
             encoder=lambda t: datetime.datetime.timestamp(t) * 1000,
-            decoder=lambda t: datetime.datetime.utcfromtimestamp(t / 1000),
+            decoder=lambda t: datetime.datetime.fromtimestamp(
+                t / 1000,
+                datetime.timezone.utc,
+            ),
         )
     )
     formatVersion: int
@@ -271,9 +274,9 @@ class WafLogEntry(LogEntry):
     httpRequest: WafLogEntryHttpRequest
     ruleGroupList: typing.List[WafLogEntryRuleGroup] = field(default_factory=list)
     rateBasedRuleList: typing.List[WafLogEntryRateGroup] = field(default_factory=list)
-    nonTerminatingMatchingRules: typing.List[
-        WafLogEntryNonTerminatingMatchingRule
-    ] = field(default_factory=list)
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule] = (
+        field(default_factory=list)
+    )
 
     @property
     def client_ip(self):
