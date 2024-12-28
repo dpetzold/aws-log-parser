@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import argparse
+import textwrap
 
 from collections import Counter
 from operator import attrgetter
@@ -16,13 +17,35 @@ def count_ips(entries, ip_attr):
 
 
 def main():
-    """
-    python examples/count-hosts.py \
-        --log-type CloudFront \
-        s3://aws-logs-test-data/cloudfront-multiple.log
-    """
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Parse AWS log data.",
+        epilog=textwrap.dedent(
+            """
+Examples:
 
-    parser = argparse.ArgumentParser(description="Parse AWS log data.")
+    # All local files in the given path.
+
+    python examples/count-hosts.py \\
+        --log-type CloudFront \\
+        file://$(pwd)/logfiles/
+
+    # CloudFront single file on S3.
+
+    python examples/count-hosts.py \\
+        --log-type CloudFront \\
+        s3://aws-logs-test-data/cloudfront-multiple.log
+
+    # LoadBalancer all with the prefix on S3.
+
+    python examples/count-hosts.py \\
+        --log-type LoadBalancer \\
+        --file-suffix='.gz' \\
+        s3://aws-logs-test-data/test-alb/AWSLogs/111111111111/elasticloadbalancing/us-east-1/2022/
+"""
+        ),
+    )
+
     parser.add_argument(
         "url",
         help="Url to the file to parse",
