@@ -24,9 +24,7 @@ class MockPaginator:
             "Contents": [
                 {
                     "Key": f"cloudfront-multiple.log{suffix}",
-                    "LastModified": datetime.datetime(
-                        2021, 11, 28, 3, 31, 56, tzinfo=tzutc()
-                    ),
+                    "LastModified": datetime.datetime(2021, 11, 28, 3, 31, 56, tzinfo=tzutc()),
                     "ETag": '"37c13f9a66a79c2b474356adaf5da1d0"',
                     "Size": 2844,
                     "StorageClass": "STANDARD",
@@ -39,8 +37,11 @@ class MockPaginator:
 class MockStreamingFile:
     filename: str
 
-    def iter_lines(self):
+    def read(self):
         return open(self.filename, "rb").read()
+
+    def iter_lines(self):
+        yield from [line for line in open(self.filename, "rb")]
 
 
 @dataclass
@@ -104,9 +105,7 @@ def test_parse_s3_gzipped(monkeypatch, cloudfront_parser):
 
 def test_parse_url_s3(monkeypatch, cloudfront_parser):
     monkeypatch.setattr(S3Service, "client", MockS3Client())
-    entries = cloudfront_parser.read_url(
-        "s3://aws-logs-test-data/cloudfront-multiple.log"
-    )
+    entries = cloudfront_parser.read_url("s3://aws-logs-test-data/cloudfront-multiple.log")
     assert len(list(entries)) == 6
 
 
