@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws-log-parser"
-version = "3.0.1"
+version = "3.0.2"
 description = "Parse AWS CloudFront and LoadBalancer logs into Python dataclasses."
 authors = ["Derrick Petzold <github@petzold.io>"]
 license = "Apache"
