@@ -33,7 +33,7 @@ class S3Service(AwsService):
             print(f"Reading s3://{bucket}/{key}")
         contents = self.client.get_object(Bucket=bucket, Key=key)
         yield from FileIterator(
-            fileobj=BytesIO(contents["Body"].iter_lines()),
+            fileobj=BytesIO(contents["Body"].read()),
             gzipped=key.endswith(".gz"),
         )
 
