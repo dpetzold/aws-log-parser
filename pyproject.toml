@@ -8,7 +8,7 @@ readme = "README.md"
 packages = [{include = "aws_log_parser"}]
 
 [tool.poetry.dependencies]
-python = ">=3.13,<3.14"
+python = ">=3.10,<3.14"
 boto3 = "^1.35.88"
 dataclasses-json = "^0.6.7"
 
