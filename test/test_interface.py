@@ -110,7 +110,7 @@ def test_parse_s3(monkeypatch, cloudfront_parser, gzipped=False):
 def test_parse_s3_gzipped(monkeypatch, cloudfront_parser):
     gzipped = True
     monkeypatch.setattr(S3Service, "client", MockS3Client(gzipped=gzipped))
-    suffix = ".gz" if gzipped else ""
+    suffix = "log.gz" if gzipped else ""
 
     entries = cloudfront_parser.read_s3(
         "bucket",
