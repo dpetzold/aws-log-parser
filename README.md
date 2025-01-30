@@ -280,5 +280,7 @@ See https://github.com/dpetzold/aws-log-parser/blob/master/aws_log_parser/models
 
 ## Development
 
+```
 poetry install
 poetry run pytest
+```
