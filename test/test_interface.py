@@ -28,7 +28,14 @@ class MockPaginator:
                     "ETag": '"37c13f9a66a79c2b474356adaf5da1d0"',
                     "Size": 2844,
                     "StorageClass": "STANDARD",
-                }
+                },
+                {
+                    "Key": f"csv-file.csv{suffix}",
+                    "LastModified": datetime.datetime(2021, 11, 28, 3, 31, 56, tzinfo=tzutc()),
+                    "ETag": '"37c13f9a66a79c2b474356adaf555555"',
+                    "Size": 2844,
+                    "StorageClass": "STANDARD",
+                },
             ],
         }
 
@@ -63,6 +70,16 @@ def cloudfront_parser():
     )
 
 
+def test_regex_filter(monkeypatch):
+    monkeypatch.setattr(S3Service, "client", MockS3Client())
+    aws_log_parser = AwsLogParser(
+        log_type=LogType.CloudFront,
+        regex_filter="cloudfront",
+    )
+    entries = aws_log_parser.read_url("s3://aws-logs-test-data/")
+    assert len(list(entries)) == 6
+
+
 def test_parse_file(cloudfront_parser):
     entries = cloudfront_parser.read_file("test/data/cloudfront-multiple.log")
     assert len(list(entries)) == 6
@@ -93,7 +110,7 @@ def test_parse_s3(monkeypatch, cloudfront_parser, gzipped=False):
 def test_parse_s3_gzipped(monkeypatch, cloudfront_parser):
     gzipped = True
     monkeypatch.setattr(S3Service, "client", MockS3Client(gzipped=gzipped))
-    suffix = ".gz" if gzipped else ""
+    suffix = "log.gz" if gzipped else ""
 
     entries = cloudfront_parser.read_s3(
         "bucket",

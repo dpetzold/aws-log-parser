@@ -43,7 +43,7 @@ class S3Service(AwsService):
             if endswith and not file["Key"].endswith(endswith):
                 continue
 
-            if reo and not reo.match(file):
+            if reo and not reo.match(file["Key"]):
                 continue
 
             yield from self.read_key(bucket, file["Key"])
