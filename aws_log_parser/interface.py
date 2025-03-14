@@ -35,9 +35,7 @@ class AwsLogParser:
     plugins: typing.List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.aws_client = AwsClient(
-            region=self.region, profile=self.profile, verbose=self.verbose
-        )
+        self.aws_client = AwsClient(region=self.region, profile=self.profile, verbose=self.verbose)
 
         self.plugins_loaded = [
             self.load_plugin(
@@ -68,13 +66,12 @@ class AwsLogParser:
         model_fields = fields(self.log_type.model)
         assert self.log_type.delimiter
         for row in csv.reader(content, delimiter=self.log_type.delimiter):
-            if not row[0].startswith("#"):
-                yield self.log_type.model(
-                    *[
-                        to_python(value, field)
-                        for value, field in zip(row, model_fields)
-                    ]
-                )
+            if row[0].startswith("#") or row[0].startswith("version"):
+                continue
+
+            yield self.log_type.model(
+                *[to_python(value, field) for value, field in zip(row, model_fields)]
+            )
 
     def parse_json(self, records):
         for record in records:
@@ -82,9 +79,7 @@ class AwsLogParser:
 
     def parse(self, content):
         parse_func = (
-            self.parse_json
-            if self.log_type.type == LogFormatType.JSON
-            else self.parse_csv
+            self.parse_json if self.log_type.type == LogFormatType.JSON else self.parse_csv
         )
         log_entries = parse_func(content)
         for plugin in self.plugins_loaded:

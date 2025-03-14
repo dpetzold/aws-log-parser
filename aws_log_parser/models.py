@@ -274,13 +274,66 @@ class WafLogEntry(LogEntry):
     httpRequest: WafLogEntryHttpRequest
     ruleGroupList: typing.List[WafLogEntryRuleGroup] = field(default_factory=list)
     rateBasedRuleList: typing.List[WafLogEntryRateGroup] = field(default_factory=list)
-    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule] = (
-        field(default_factory=list)
+    nonTerminatingMatchingRules: typing.List[WafLogEntryNonTerminatingMatchingRule] = field(
+        default_factory=list
     )
 
     @property
     def client_ip(self):
         return self.httpRequest.clientIp
+
+
+@dataclass_json
+@dataclass(frozen=True)
+class FlowLogEntry(LogEntry):
+    version: int
+    account_id: str
+    interface_id: str
+    srcaddr: str
+    dstaddr: str
+    srcport: str
+    dstport: int
+    protocol: int
+    packets: int
+    _bytes: int
+
+    """
+    start: datetime.datetime = field(
+        metadata=config(
+            encoder=lambda t: datetime.datetime.timestamp(t),
+            decoder=lambda t: datetime.datetime.fromtimestamp(
+                t,
+                datetime.timezone.utc,
+            ),
+        )
+    )
+
+    end: datetime.datetime = field(
+        metadata=config(
+            encoder=lambda t: datetime.datetime.timestamp(t),
+            decoder=lambda t: datetime.datetime.fromtimestamp(
+                t,
+                datetime.timezone.utc,
+            ),
+        )
+    )
+    """
+
+    start: int
+    end: int
+
+    action: str
+    log_status: str
+    ecs_task_id: str
+    ecs_task_arn: str
+    ecs_cluster_arn: str
+    ecs_cluster_name: str
+    ecs_container_id: str
+    ecs_service_name: str
+    ecs_task_definition_arn: str
+    ecs_second_container_id: str
+    ecs_container_instance_id: str
+    ecs_container_instance_arn: str
 
 
 class LogFormatType(str, Enum):
@@ -318,23 +371,23 @@ class LogType:
         name="ClassicLoadBalancer",
         model=ClassicLoadBalancerLogEntry,
     )
-
     LoadBalancer: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
         name="LoadBalancer",
         model=LoadBalancerLogEntry,
     )
-
     CloudFront: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFront",
         model=CloudFrontWebDistributionLogEntry,
     )
-
     CloudFrontRTMP: typing.ClassVar[LogFormat] = LogFormatCsvTabbed(
         name="CloudFrontRTMP",
         model=CloudFrontRTMPDistributionLogEntry,
     )
-
     WAF: typing.ClassVar[LogFormat] = LogFormatJson(
         name="WAF",
         model=WafLogEntry,
+    )
+    Flow: typing.ClassVar[LogFormat] = LogFormatCsvSpaced(
+        name="Flow",
+        model=FlowLogEntry,
     )
