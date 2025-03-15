@@ -136,6 +136,10 @@ class LoadBalancerLogEntry(LogEntry):
     redirect_url: typing.Optional[str]
     error_reason: typing.Optional[LoadBalancerErrorReason]
 
+    @property
+    def client_ip(self):
+        return self.client.ip
+
 
 @dataclass(frozen=True)
 class CloudFrontLogEntry(LogEntry):

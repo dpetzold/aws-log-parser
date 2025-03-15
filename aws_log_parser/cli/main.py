@@ -1,53 +1,49 @@
 import argparse
 import logging
+import sys
 
-from collections import Counter
+from importlib import import_module
 from pathlib import Path
-
-from rich.console import Console
-from rich.table import Table
-
 
 from ..interface import AwsLogParser
 from ..models import LogType
 
-console = Console()
 logger = logging.getLogger(__name__)
 
 
-def count_hosts(entries):
-    counter = Counter()
-    for entry in entries:
-        counter[
-            entry.instance_name
-            if hasattr(entry, "instance_name") and entry.instance_name
-            else (entry.instance_id if entry.instance_id else entry.client_ip)
-        ] += 1
+def load_module(path: str):
+    module_name, func_name = path.split(":", 1)
 
-    table = Table(show_header=True)
-    table.add_column("", justify="left")
-    table.add_column("Instance Name", justify="left")
-    table.add_column("Requests", justify="right")
-    table.add_column("%", justify="right")
+    module_path = Path(module_name).resolve()
+    sys.path.insert(0, str(module_path.parent))
 
-    total = counter.total()
-    for i, pair in enumerate(sorted(counter.items(), key=lambda t: t[1]), 1):
-        instance_name, count = pair
-        table.add_row(
-            str(i),
-            instance_name,
-            f"{count:,}",
-            f"({(count/total) * 100:.2f}%)",
-            end_section=i == len(counter),
-        )
+    if module_path.is_file():
+        import_name = module_path.with_suffix("").name
+    else:
+        import_name = module_path.name
 
-    table.add_row("", "Total", f"{total:,}", "")
+    try:
+        module = import_module(import_name)
+    except ModuleNotFoundError as error:
+        if error.name == import_name:
+            raise ValueError(f"Cannot load application from '{path}', module not found.")
+        else:
+            raise
 
-    console.print(table)
+    try:
+        return eval(func_name, vars(module))
+    except NameError:
+        raise ValueError(f"Cannot load application from '{path}', application not found.")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Parse AWS log data.")
+
+    parser.add_argument(
+        "function",
+        help="Function to read the parsed data",
+    )
+
     parser.add_argument(
         "url",
         help="Url to the file to parse",
@@ -91,13 +87,14 @@ def main():
         profile=args.profile,
         region=args.region,
         verbose=args.verbose,
-        plugin_paths=[
-            Path(__file__).parents[2] / "plugins",
-        ],
-        plugins=[
-            "instance_id:AwsPluginInstanceId",
-            "instance_name:AwsPluginInstanceName",
-        ],
+        # plugin_paths=[
+        #     Path(__file__).parents[2] / "plugins",
+        # ],
+        # plugins=[
+        #     "instance_id:AwsPluginInstanceId",
+        #     "instance_name:AwsPluginInstanceName",
+        # ],
     ).read_url(args.url)
 
-    count_hosts(log_entries)
+    func = load_module(args.function)
+    func(log_entries)
