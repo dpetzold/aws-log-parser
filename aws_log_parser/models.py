@@ -319,8 +319,8 @@ class FlowLogEntry(LogEntry):
     )
     """
 
-    start: int
-    end: int
+    start: str
+    end: str
 
     action: str
     log_status: str

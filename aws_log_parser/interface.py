@@ -2,6 +2,7 @@ import csv
 import typing
 import importlib
 import importlib.util
+import logging
 import re
 import sys
 
@@ -18,6 +19,9 @@ from .models import (
 from .util import batcher
 
 from .parser import to_python
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -69,9 +73,15 @@ class AwsLogParser:
             if row[0].startswith("#") or row[0].startswith("version"):
                 continue
 
-            yield self.log_type.model(
-                *[to_python(value, field) for value, field in zip(row, model_fields)]
-            )
+            parsed = []
+            for value, model_field in zip(row, model_fields):
+                try:
+                    parsed.append(to_python(value, model_field))
+                except ValueError as exc:
+                    logger.warn(f"{exc!s} on {row}")
+                    parsed.append(None)
+
+            yield self.log_type.model(*parsed)
 
     def parse_json(self, records):
         for record in records:

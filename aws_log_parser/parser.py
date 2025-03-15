@@ -24,9 +24,7 @@ def to_http_type(value):
 
 
 def to_datetime(value):
-    return datetime.datetime.fromisoformat(value.rstrip("Z")).replace(
-        tzinfo=datetime.timezone.utc
-    )
+    return datetime.datetime.fromisoformat(value.rstrip("Z")).replace(tzinfo=datetime.timezone.utc)
 
 
 def to_http_request(value):
@@ -84,4 +82,5 @@ def to_python(value, field):
         return urllib.parse.parse_qs(value)
     if field.name == "cookie":
         return to_cookie(value)
+
     return field_type(value)

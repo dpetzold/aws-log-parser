@@ -1,6 +1,8 @@
 #!/bin/env python
 
 import argparse
+import json
+import dataclasses
 import textwrap
 
 from collections import Counter
@@ -9,10 +11,40 @@ from operator import attrgetter
 from aws_log_parser import AwsLogParser, LogType
 
 
-def count_ips(entries, ip_attr):
-    counter = Counter(attrgetter(ip_attr)(entry) for entry in entries)
+def _count_ips(entries, ip_attr):
+    for entry in entries:
+        print(json.dumps(dataclasses.asdict(entry), indent=4, default=str))
+        break
 
-    for ip, count in sorted(counter.items()):
+
+def count_ips(entries, ip_attr):
+    ips = [
+        "18.155.202.126",
+        "18.155.202.72",
+        "18.155.202.113",
+        "18.155.202.101",
+    ]
+
+    filtered = [entry for entry in entries if entry.dstaddr in ips]
+
+    for entry in filtered:
+        print(json.dumps(dataclasses.asdict(entry), indent=4, default=str))
+        break
+
+
+def _count_ips(entries, ip_attr):
+    """
+    184.72.225.4: 350160
+    34.231.137.156: 305434
+    184.72.231.0: 4823
+    184.72.224.249: 3074
+    184.72.227.124: 2452
+    71.247.202.102: 1
+    """
+
+    counter = Counter(entry.client_ip for entry in entries if entry.http_method == "POST")
+
+    for ip, count in counter.most_common():
         print(f"{ip}: {count}")
 
 
@@ -36,10 +68,11 @@ Examples:
         --log-type CloudFront \\
         s3://aws-logs-test-data/cloudfront-multiple.log
 
-    # LoadBalancer all with the prefix on S3.
+    # LoadBalancer all with the regex search match on S3.
 
     python examples/count-hosts.py \\
         --log-type LoadBalancer \\
+        --regex-filter='E110AAAAAAAAAA\\.2024\\-05\\-13\\-13' \\
         --file-suffix='.gz' \\
         s3://aws-logs-test-data/test-alb/AWSLogs/111111111111/elasticloadbalancing/us-east-1/2022/
 """
