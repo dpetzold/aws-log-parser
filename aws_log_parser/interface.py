@@ -10,7 +10,7 @@ from dataclasses import dataclass, fields, field
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .aws import AwsClient
+from .aws.s3 import S3Client
 from .io import FileIterator
 from .models import (
     LogFormat,
@@ -35,11 +35,12 @@ class AwsLogParser:
     regex_filter: typing.Optional[str] = None
     verbose: bool = False
 
+    s3_client: S3Client = field(init=False)
     plugin_paths: typing.List[typing.Union[str, Path]] = field(default_factory=list)
     plugins: typing.List[str] = field(default_factory=list)
 
     def __post_init__(self):
-        self.aws_client = AwsClient(region=self.region, profile=self.profile, verbose=self.verbose)
+        self.s3_client = S3Client(region=self.region, profile=self.profile)
 
         self.plugins_loaded = [
             self.load_plugin(
@@ -60,7 +61,7 @@ class AwsLogParser:
         module = importlib.util.module_from_spec(spec)
         sys.modules[plugin_module] = module
         spec.loader.exec_module(module)  # type: ignore
-        return getattr(module, plugin_classs)(aws_client=self.aws_client)
+        return getattr(module, plugin_classs)()
 
     def run_plugin(self, plugin, log_entries):
         for batch in batcher(log_entries, plugin.batch_size):
@@ -148,7 +149,7 @@ class AwsLogParser:
         :rtype: Dependant on log_type.
         """
         yield from self.parse(
-            self.aws_client.s3_service.read_keys(
+            self.s3_client.read_keys(
                 bucket,
                 prefix,
                 endswith=endswith if endswith else self.file_suffix,

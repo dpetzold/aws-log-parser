@@ -1,3 +1,4 @@
+import asyncio
 import argparse
 import logging
 import sys
@@ -5,7 +6,6 @@ import sys
 from importlib import import_module
 from pathlib import Path
 
-from ..interface import AwsLogParser
 from ..models import LogType
 
 logger = logging.getLogger(__name__)
@@ -72,29 +72,21 @@ def main():
     )
 
     parser.add_argument(
-        "--count-hosts",
-        help="Count the number of hosts",
+        "--file-suffix",
+        default=".gz",
+        help="The file suffix to filter on.",
     )
 
     parser.add_argument(
-        "--instance-id",
+        "--regex-filter",
+        help="The regex filter.",
+    )
+
+    parser.add_argument(
+        "--sort-key",
+        help="The sort the S3 objects with this key.",
     )
 
     args = parser.parse_args()
 
-    log_entries = AwsLogParser(
-        log_type=args.log_type,
-        profile=args.profile,
-        region=args.region,
-        verbose=args.verbose,
-        # plugin_paths=[
-        #     Path(__file__).parents[2] / "plugins",
-        # ],
-        # plugins=[
-        #     "instance_id:AwsPluginInstanceId",
-        #     "instance_name:AwsPluginInstanceName",
-        # ],
-    ).read_url(args.url)
-
-    func = load_module(args.function)
-    func(log_entries)
+    asyncio.run(load_module(args.function)(args))

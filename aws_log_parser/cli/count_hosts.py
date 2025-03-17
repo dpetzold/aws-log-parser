@@ -15,7 +15,7 @@ def count_hosts(entries):
     table.add_column("Requests", justify="right")
     table.add_column("%", justify="right")
 
-    total = counter.total()
+    total = counter.total()  # type: ignore
     for i, pair in enumerate(sorted(counter.items(), key=lambda t: t[1]), 1):
         client_ip, count = pair
         table.add_row(

@@ -11,9 +11,6 @@ from aws_log_parser import (
 )
 
 
-from aws_log_parser.aws.s3 import S3Service
-
-
 @dataclass
 class MockPaginator:
     gzipped: bool = False
