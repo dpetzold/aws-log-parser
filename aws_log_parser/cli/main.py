@@ -56,6 +56,12 @@ def main():
     )
 
     parser.add_argument(
+        "--run-async",
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
         "--verbose",
         action="store_true",
         default=False,
@@ -89,4 +95,7 @@ def main():
 
     args = parser.parse_args()
 
-    asyncio.run(load_module(args.function)(args))
+    if args.run_async:
+        asyncio.run(load_module(args.function)(args))
+    else:
+        load_module(args.function)(args)

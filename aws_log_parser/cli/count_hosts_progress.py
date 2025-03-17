@@ -1,18 +1,31 @@
-import asyncio
-import time
 from collections import Counter
+from io import BytesIO
 
 from rich.console import Console
 from rich.table import Table
 from rich import progress as rich_progress
 
+from ..io import FileIterator
 from ..interface import AwsLogParser
 
 console = Console()
 
 counter = Counter()
 
-counter_lock = asyncio.Lock()
+
+progress = rich_progress.Progress(
+    rich_progress.TextColumn(
+        "[bold blue]{taws_log_parser.parseask.fields[filename]}", justify="right"
+    ),
+    rich_progress.BarColumn(bar_width=None),
+    "[progress.percentage]{task.percentage:>3.1f}%",
+    "•",
+    rich_progress.DownloadColumn(),
+    "•",
+    rich_progress.TransferSpeedColumn(),
+    "•",
+    rich_progress.TimeRemainingColumn(),
+)
 
 
 def print_results(counter):
@@ -38,84 +51,43 @@ def print_results(counter):
     console.print(table)
 
 
-async def download_worker(
-    aws_log_parser,
-    bucket,
-    progress,
-    task_progress,
-    queue,
-):
-    while True:
-        s3_object = await queue.get()
+def download_objects(aws_log_parser, task_id, bucket, s3_objects):
+    for i, s3_object in enumerate(s3_objects):
+        key = s3_object["Key"]
 
         progress.update(
-            task_progress,
+            task_id,
             filename=s3_object["Key"],
             total=s3_object["Size"],
         )
 
-        progress.start_task(task_progress)
-
         progress.console.log(f"Downloading {s3_object['Key']}")
+        progress.start_task(task_id)
+
+        contents = BytesIO()
+
+        aws_log_parser.s3_client.client.download_fileobj(
+            bucket,
+            key,
+            contents,
+            Callback=lambda x: progress.update(task_id, advance=x),
+        )
 
         entries = []
         for entry in aws_log_parser.parse(
-            aws_log_parser.s3_client.read_key(bucket, s3_object["Key"])
+            FileIterator(
+                fileobj=contents,
+                gzipped=key.endswith(".gz"),
+            )
         ):
             entries.append(entry)
-            progress.update(task_progress, advance=1)
+            progress.update(task_id, advance=1)
 
-        async with counter_lock:
-            counter.update([entry.client_ip for entry in entries])
-
-        queue.task_done()
+        if i == 3:
+            break
 
 
-async def download_objects(aws_log_parser, bucket, s3_objects):
-    queue = asyncio.Queue()
-
-    for s3_object in s3_objects:
-        queue.put_nowait(s3_object)
-
-    progress = rich_progress.Progress(
-        rich_progress.TextColumn(
-            "[bold blue]{taws_log_parser.parseask.fields[filename]}", justify="right"
-        ),
-        rich_progress.BarColumn(bar_width=None),
-        "[progress.percentage]{task.percentage:>3.1f}%",
-        "•",
-        rich_progress.DownloadColumn(),
-        "•",
-        rich_progress.TransferSpeedColumn(),
-        "•",
-        rich_progress.TimeRemainingColumn(),
-    )
-
-    tasks = []
-    for i in range(3):
-        progress_task = progress.add_task(f"download-{i}", start=False)
-
-        task = asyncio.create_task(
-            download_worker(aws_log_parser, bucket, progress, progress_task, queue)
-        )
-        tasks.append(task)
-
-    started_at = time.monotonic()
-    await queue.join()
-    total_slept_for = time.monotonic() - started_at
-
-    for task in tasks:
-        task.cancel()
-
-    await asyncio.gather(*tasks, return_exceptions=True)
-
-    console.log("====")
-    console.log(f"3 workers worked in parallel for {total_slept_for:.2f} seconds")
-
-    print_results(counter)
-
-
-async def count_hosts(args):
+def count_hosts(args):
     aws_log_parser = AwsLogParser(
         log_type=args.log_type,
         profile=args.profile,
@@ -138,4 +110,6 @@ async def count_hosts(args):
 
         console.log(f"Found {len(s3_objects)} S3 objects")
 
-    await download_objects(aws_log_parser, bucket, s3_objects)
+    task_id = progress.add_task("download", start=False)
+
+    download_objects(aws_log_parser, task_id, bucket, s3_objects)
