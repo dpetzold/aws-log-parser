@@ -1,5 +1,6 @@
 from collections import Counter
 from io import BytesIO
+from pathlib import Path
 
 from rich.console import Console
 from rich.table import Table
@@ -11,21 +12,6 @@ from ..interface import AwsLogParser
 console = Console()
 
 counter = Counter()
-
-
-progress = rich_progress.Progress(
-    rich_progress.TextColumn(
-        "[bold blue]{taws_log_parser.parseask.fields[filename]}", justify="right"
-    ),
-    rich_progress.BarColumn(bar_width=None),
-    "[progress.percentage]{task.percentage:>3.1f}%",
-    "•",
-    rich_progress.DownloadColumn(),
-    "•",
-    rich_progress.TransferSpeedColumn(),
-    "•",
-    rich_progress.TimeRemainingColumn(),
-)
 
 
 def print_results(counter):
@@ -51,13 +37,13 @@ def print_results(counter):
     console.print(table)
 
 
-def download_objects(aws_log_parser, task_id, bucket, s3_objects):
-    for i, s3_object in enumerate(s3_objects):
+def download_objects(aws_log_parser, progress, task_id, bucket, s3_objects):
+    for i, s3_object in enumerate(s3_objects, 1):
         key = s3_object["Key"]
 
         progress.update(
             task_id,
-            filename=s3_object["Key"],
+            filename=Path(s3_object["Key"]).name,
             total=s3_object["Size"],
         )
 
@@ -95,21 +81,33 @@ def count_hosts(args):
         verbose=args.verbose,
     )
 
-    with console.status("[bold green]Listing objects..."):
-        bucket, prefix = aws_log_parser.s3_client.parse_url(args.url)
+    # with console.status("[bold green]Listing objects..."):
+    bucket, prefix = aws_log_parser.s3_client.parse_url(args.url)
 
-        s3_objects = list(
-            aws_log_parser.s3_client.filter_objects(
-                bucket,
-                prefix,
-                endswith=args.file_suffix,
-                regex_filter=args.regex_filter,
-                sort_key=args.sort_key,
-            )
+    s3_objects = list(
+        aws_log_parser.s3_client.filter_objects(
+            bucket,
+            prefix,
+            endswith=args.file_suffix,
+            regex_filter=args.regex_filter,
+            sort_key=args.sort_key,
         )
+    )
 
-        console.log(f"Found {len(s3_objects)} S3 objects")
+    console.log(f"Found {len(s3_objects)} S3 objects")
 
-    task_id = progress.add_task("download", start=False)
+    with rich_progress.Progress(
+        rich_progress.TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+        rich_progress.BarColumn(bar_width=None),
+        "[progress.percentage]{task.percentage:>3.1f}%",
+        "•",
+        rich_progress.DownloadColumn(),
+        "•",
+        rich_progress.TransferSpeedColumn(),
+        "•",
+        rich_progress.TimeRemainingColumn(),
+    ) as progress:
 
-    download_objects(aws_log_parser, task_id, bucket, s3_objects)
+        task_id = progress.add_task("download", filename="notset", start=False)
+
+        download_objects(aws_log_parser, progress, task_id, bucket, s3_objects)
