@@ -11,6 +11,7 @@ packages = [{include = "aws_log_parser"}]
 python = ">=3.10,<3.14"
 boto3 = "^1.35.88"
 dataclasses-json = "^0.6.7"
+aioboto3 = "^14.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-cov = "^6.0.0"

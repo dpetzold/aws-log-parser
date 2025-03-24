@@ -93,6 +93,13 @@ def main():
         help="The sort the S3 objects with this key.",
     )
 
+    parser.add_argument(
+        "--concurrency",
+        help="Number of concurrent downloads.",
+        default=3,
+        type=int,
+    )
+
     args = parser.parse_args()
 
     if args.run_async:
