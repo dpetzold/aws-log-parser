@@ -72,7 +72,7 @@ def to_python(value, field):
     if field_type == LoadBalancerErrorReason:
         return getattr(LoadBalancerErrorReason, value)
     if field_type == Host:
-        ip, port = value.split(":")
+        ip, port = value.rsplit(":", 1)
         return Host(ip, int(port))
     if field_type == HttpRequest:
         return to_http_request(value)
